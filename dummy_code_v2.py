@@ -64,21 +64,23 @@ config2 = {
 # SIMULATION
 # Initialize the environment
 env = environment(config1, ctrl=True)
-wq = water_quality(config2)
+wq = water_quality(config2, ctrl=True)
 done = False
 state = env.initial_state()
+treatment = wq.initial_state()
 
 # Run Simulation
 while not done:
     
     # Steps water quality simulation: 1st uses getters, 
     # 2nd computes treatment, 3rd uses setters
-    water_quality.step()
+    new_treatment, done = wq.step()
 
     # Steps the simulation
     new_state, done = env.step(np.ones(2))
 
     state = new_state
+    treatment = new_treatment
     
 # End Simulation & Close SWMM
 env.sim._model.swmm_end()
