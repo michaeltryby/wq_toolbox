@@ -1,12 +1,16 @@
-# Working from this code for wq toolbox (1/7/2020)
+# -*- coding: utf-8 -*-
+# @Author: Brooke Mason
+# @Date:   2020-01-15 09:56:47
+# @Last Modified by:   Brooke Mason
+# @Last Modified time: 2020-01-15 11:14:04
 
 # IMPORT 
 # Import SWMM Modules
 from pyswmm_lite import environment
-from pyswmm_lite import water_quality
+import wq_toolbox
 
 #SETUP
-# Generate the state tuple for hydraulics
+# Generate the state tuple for hydraulics for pyswmm_lite
 states = []
 subcatchment = np.linspace(1, 2, 2, dtype=int)
 nodes = np.linspace(1, 2, 2, dtype=int)
@@ -40,20 +44,20 @@ treatments = []
 # Treatments for the subcatchment
 for i in subcatchment:
     for j in pollutants:
-        treatments.append(("S"+str(i), "pfr", int(j)), 1.5) 
-        # 2 pollutants/subcatchment, same "pfr" treatment, reaction rate
+        treatments.append(("S"+str(i), "pfr", int(j)), 1.5, "flow") 
+        # 2 pollutants/subcatchment, same "pfr" treatment, reaction rate, SWMM data needed
 
 # Treatments for the nodes
 for i in nodes:
     for j in pollutants:
-        treatments.append(("N"+str(i), "cstr", int(j)), 0.4) 
-        # 2 pollutants/node, same "cstr" treatment, reaction rate
+        treatments.append(("N"+str(i), "cstr", int(j)), 0.4, "depthN") 
+        # 2 pollutants/node, same "cstr" treatment, reaction rate, SWMM data needed
 
 # Treatments for the links
 for i in links:
     for j in pollutants:
-        treatments.append(("L"+str(i), "kcmodel", int(j), 2.0, 5.0) 
-        # 2 pollutants/link, same "kcmodel" treatment, reaction rate, background conc.
+        treatments.append(("L"+str(i), "kcmodel", int(j), 2.0, 5.0, "flow") 
+        # 2 pollutants/link, same "kcmodel" treatment, reaction rate, background conc., SWMM data needed
 
 # Build the treatment configuration dictionary
 config2 = {
@@ -64,17 +68,22 @@ config2 = {
 # SIMULATION
 # Initialize the environment
 env = environment(config1, ctrl=True)
-wq = water_quality(config2, ctrl=True)
+wq = wq_toolbox(config2, env)
 done = False
 state = env.initial_state()
-treatment = wq.initial_state()
 
 # Run Simulation
 while not done:
     
-    # Steps water quality simulation: 1st uses getters, 
-    # 2nd computes treatment, 3rd uses setters
-    new_treatment, done = wq.step()
+    # Steps water quality simulation:
+    # 1st gets pollutant at current timestep
+    wq.getPollutant() 
+
+    # 2nd runs treatment using specified solver
+    wq.Treatment.CSTR(Solve.solver1())
+
+    #  3rd sets new concentration at current time step
+    wq.setPollutant()
 
     # Steps the simulation
     new_state, done = env.step(np.ones(2))
