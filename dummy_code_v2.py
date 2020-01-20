@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:56:47
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-15 11:14:04
+# @Last Modified time: 2020-01-15 12:42:47
 
 # IMPORT 
 # Import SWMM Modules
@@ -74,16 +74,21 @@ state = env.initial_state()
 
 # Run Simulation
 while not done:
+
+    new_treatment, done = wq.step()
+
+    """
+    All this in the step: 
     
     # Steps water quality simulation:
     # 1st gets pollutant at current timestep
-    wq.getPollutant() 
+    wq.Treatment.getPollutant() 
 
     # 2nd runs treatment using specified solver
-    wq.Treatment.CSTR(Solve.solver1())
+    wq.Treatment.CSTR(solver1)
 
     #  3rd sets new concentration at current time step
-    wq.setPollutant()
+    wq.Treatment.setPollutant()"""
 
     # Steps the simulation
     new_state, done = env.step(np.ones(2))
