@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-20 15:52:15
+# @Last Modified time: 2020-01-20 16:03:53
 
 # IMPORT 
 # Import SWMM Modules
@@ -14,15 +14,14 @@ import numpy as np
 # Build the hydraulics configuration dictionary
 config1 = {
     "swmm_input": "./test_single.inp",
-    "states": [("P1", "depthN"), ("P1", "pollutantN", "1")],
+    "states": [("P1", "pollutantN", "1")],
     }
 
 # SIMULATION
 # Initialize the environment
-env = environment(config1, ctrl=True)
+env = environment("./test_single.inp", ctrl=False)
 #wq = wq_toolbox(config2, env)
 done = False
-state = env.initial_state()
 
 # Run Simulation
 while not done:
@@ -39,8 +38,7 @@ while not done:
 	#env._setNodePollutant()
 
     # Steps the simulation
-    new_state, done = env.step(np.ones(1))
-    state = new_state
+    done = env.step()
 
     
 # End Simulation & Close SWMM
