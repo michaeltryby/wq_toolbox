@@ -2,27 +2,23 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 15:01:08
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-21 09:21:35
+# @Last Modified time: 2020-01-21 11:26:25
 
 import numpy as np
 from scipy.integrate import odeint
+import matplotlib.pyplot as plt
 
 #SETUP WQ FUNCTION
-def CSTR(Co,t,k):
-	#Qin = env._getNodeInflow("P1")
-	#Qout = env._getLinkFlow("7")
-	#Cin = env._getNodePollutant("P1")
-	#V = environment._getNodeVolume("P1")
-	Qin = 50
-	Qout =  25
-	Cin = 10
-	Cout  = 5
-	V = 100
+def CSTR(C, t, k, V, Qin, Qout, Cin):
 
 	# CSTR equation
-	dCdt = Qin/V*Cin - Qout/V*Cout - k*Co
-	return print(dCdt)
+	dCdt = (Qin*Cin - Qout*C)/V - k*C
+	return dCdt
 
-	#env._setNodePollutant("P1", dCdt)
 
-odeint(CSTR, 0.0, np.linspace(0,10,11), args=(0.5,))
+t = np.linspace(0, 40, 100)
+sol = odeint(CSTR, 0.0, t, args=(0.10, 10.0, 1.0, 1.0, 10.0))
+
+plt.plot(t, sol)
+plt.ylim(0, 6.0)
+plt.show()
