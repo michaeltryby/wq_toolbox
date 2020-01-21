@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 15:01:08
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-21 08:56:15
+# @Last Modified time: 2020-01-21 09:21:35
 
 import numpy as np
 from scipy.integrate import odeint
@@ -25,6 +25,4 @@ def CSTR(Co,t,k):
 
 	#env._setNodePollutant("P1", dCdt)
 
-k = 0.5
-t =  np.linspace(0,10,11)
-odeint(CSTR, 0.0, t, args=(k,))
+odeint(CSTR, 0.0, np.linspace(0,10,11), args=(0.5,))
