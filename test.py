@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-22 12:19:13
+# @Last Modified time: 2020-01-22 15:51:58
 
 # IMPORT 
 # Import modules
@@ -41,6 +41,14 @@ conc = []
 
 # Run Simulation
 while not done:
+	"""
+	TO DO 1: build step class: needs to calculate dt, input it into solver,
+	run treatment, calls solver, and then sets pollutant concentration.
+
+	Needs to import the modules it needs to run. 
+
+	Use the step() PySWMM_Lite code for inspiration
+	"""
 	# call current time
 	t0 = env.sim._model.getCurrentSimulationTime()
 	
@@ -54,8 +62,22 @@ while not done:
 	dt = t1 - t0
 	dt = dt.seconds
 
-	#Run water quality work
-	sol = odeint(CSTR, 1.0, np.array([0,dt]), args=(0.10, env.sim._model.getNodeResult("P1",3), env._getNodeInflow("P1"), env._getLinkFlow("7"), env._getNodePollutant("P1", "1")))
+	# Run water quality work
+	"""
+	TO DO 2:
+	Start building cstr class, figure out how to call swmm fcns so
+	user doesn't have to input like below, should default get Co from 
+	swmm input file or user input
+
+	Things to Consider:
+	Think about the code you’re currently working on. What are the 
+	properties: the contracts and invariants? Can you use 
+	property-based testing framework to verify these automatically?
+	"""
+	sol = odeint(CSTR, 1.0, np.array([0,dt]), 
+		args=(0.10, env.sim._model.getNodeResult("P1",3), 
+			env._getNodeInflow("P1"), env._getLinkFlow("7"), 
+			env._getNodePollutant("P1", "1")))
 	c = float(sol[-1])
 	conc.append(c)
 	print("Conc set to:", c)
@@ -68,7 +90,9 @@ while not done:
 env.sim._model.swmm_end()
 env.sim._model.swmm_close()
 
-
+"""
+TO DO: Create a class for graphing treatment results
+"""
 time = np.arange(0, len(conc))
 plt.plot(time, conc)
 plt.xlabel("Time (s)")
