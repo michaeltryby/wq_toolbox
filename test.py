@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-22 15:51:58
+# @Last Modified time: 2020-01-23 13:04:17
 
 # IMPORT 
 # Import modules
@@ -25,7 +25,7 @@ config1 = {
 env = environment("./test_single.inp", ctrl=False)
 done = False
 
-#SETUP WQ FUNCTION
+# Setup CSTR equation
 def CSTR(C, t, k, V, Qin, Qout, Cin):
 
 	# CSTR equation
@@ -37,7 +37,20 @@ def CSTR(C, t, k, V, Qin, Qout, Cin):
 		dCdt = 0
 	return dCdt
 
+# Create Treatment Class
+class Treatment:
+	def __init__(self, environment):
+		self.env = environment
+
+	def step(self, dt):
+		sol = odeint(CSTR, 1.0, np.array([0,dt]), 
+			args=(0.10, self.env.sim._model.getNodeResult("P1",3), 
+			self.env._getNodeInflow("P1"), self.env._getLinkFlow("7"), 
+			self.env._getNodePollutant("P1", "1")))
+		return sol
+
 conc = [] 
+treat = Treatment(env)
 
 # Run Simulation
 while not done:
@@ -50,6 +63,8 @@ while not done:
 	Use the step() PySWMM_Lite code for inspiration
 	"""
 	# call current time
+
+	# Compute the time step 
 	t0 = env.sim._model.getCurrentSimulationTime()
 	
 	# Steps the simulation
@@ -61,12 +76,11 @@ while not done:
 	# calculate difference between two times (det)
 	dt = t1 - t0
 	dt = dt.seconds
-
 	# Run water quality work
 	"""
 	TO DO 2:
-	Start building cstr class, figure out how to call swmm fcns so
-	user doesn't have to input like below, should default get Co from 
+	Start building cstr class, figure out how to call swmm fcns directly
+	so user doesn't have to input like below, should default get Co from 
 	swmm input file or user input
 
 	Things to Consider:
@@ -74,10 +88,12 @@ while not done:
 	properties: the contracts and invariants? Can you use 
 	property-based testing framework to verify these automatically?
 	"""
-	sol = odeint(CSTR, 1.0, np.array([0,dt]), 
-		args=(0.10, env.sim._model.getNodeResult("P1",3), 
-			env._getNodeInflow("P1"), env._getLinkFlow("7"), 
-			env._getNodePollutant("P1", "1")))
+	#sol = odeint(CSTR, 1.0, np.array([0,dt]), 
+	#	args=(0.10, env.sim._model.getNodeResult("P1",3), 
+	#		env._getNodeInflow("P1"), env._getLinkFlow("7"), 
+	#		env._getNodePollutant("P1", "1")))
+	sol = treat.step(dt)
+
 	c = float(sol[-1])
 	conc.append(c)
 	print("Conc set to:", c)
