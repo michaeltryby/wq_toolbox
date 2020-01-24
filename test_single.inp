@@ -137,11 +137,6 @@ General          TSS_Class6       POW        13         5          0.3        AR
 ;;-------------- ---------------- ---------- ---------- ---------- ---------- ----------     
 General          TSS_Class6       EXP        5          1          0.0        0.0       
 
-[TREATMENT]
-;;Node           Pollutant        Function  
-;;-------------- ---------------- ----------
-P1               TSS_Class6       R = 1 - exp(-2.07E01*DT/DEPTH) - exp(138.89/FLOW)
-
 [CURVES]
 ;;Name           Type       X-Value    Y-Value   
 ;;-------------- ---------- ---------- ----------
