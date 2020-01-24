@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-23 13:04:17
+# @Last Modified time: 2020-01-24 13:00:00
 
 # IMPORT 
 # Import modules
@@ -51,6 +51,7 @@ class Treatment:
 
 conc = [] 
 treat = Treatment(env)
+done = False
 
 # Run Simulation
 while not done:
