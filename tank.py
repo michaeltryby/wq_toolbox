@@ -2,27 +2,41 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-24 09:34:15
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-24 13:10:40
+# @Last Modified time: 2020-01-24 15:28:13
 
 # IMPORT 
 # Import modules
 import numpy as np
-from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
-# Define simulation time
-def simulation(days, dt):
-    time_steps = days * 24 * 3600 / dt
-    return [int(dt), int(time_steps)]
+def tank(A, Qin, Qout, V_current):
+    dvdt = Qin - Qout
+    V_nextstep = V_current + dvdt
+    if V_nextstep < 10**-5:
+        V_nextstep = 0.0
+    h = V_nextstep / A
+    return V_nextstep, h
 
-# Define tank and calculate tank dynamics
-def tank(z, t, A, Qin):
-    V = z[0]
-    Qout = z[1]
+A = 100
+V = 500
+h = V / 100
+valve = 1.0
+Qin = 18.0
 
-    dVdt = Qin - Qout
-    Qout = np.sqrt(2 * 9.8 * (V / A))
-    return [dVdt, Qout]
+depth = []
+outflows = []
+volume = []
+
+for i in range(0, 1000):
+    if h < 10**-5:
+        Qout = 0.0
+    else:
+        Qout = valve * np.sqrt(2 * 9.80 * h)
+    V, h = tank(A, Qin, Qout, V)
+
+    depth.append(h)
+    outflows.append(Qout)
+    volume.append(V)
 
 """
 # Setup CSTR equation
@@ -38,32 +52,23 @@ def CSTR(C, t, k, V, Qin, Qout, Cin):
     return dCdt
 
 conc = []
-"""
-
-water_vol = []
-Qout_all = []
-dt, time_steps = simulation(1, 10)
-z0 = [0,0]
-
-# Run simulation
-for i in range(0, time_steps):
-    z = odeint(tank, z0, np.array([0,dt]), args=(1000, 10))
-    water_vol.append(z[:,0])
-    print("Tank Volume: ", z[1,0])
-    Qout_all.append(z[:,1])
-    print("Tank Outflow: ", z[1,1])
 
     #sol = CSTR()
     #conc.append(sol)
     #print("Conc set to:", sol)
-
-
+"""
 
 # Graph results
-#time = np.arange(0, len(water_vol))
-#plt.plot(time, water_vol, label="Water Vol (m3)")
-#plt.xlabel("Time (s)")
-#plt.show()
+plt.subplot(3, 1, 1)
+plt.plot(depth)
+plt.ylabel("Depth")
+plt.subplot(3, 1, 2)
+plt.plot(outflows)
+plt.ylabel("Outflow")
+plt.subplot(3, 1, 3)
+plt.plot(volume)
+plt.ylabel("Volume")
+plt.show()
 
 """
 plt.plot(time, conc)
