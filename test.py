@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-24 13:00:00
+# @Last Modified time: 2020-01-27 11:04:52
 
 # IMPORT 
 # Import modules
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 #SETUP
 # Build the hydraulics configuration dictionary
 config1 = {
-	"swmm_input": "./test_single.inp",
+	"swmm_input": "./tank_test.inp",
 	"states": [("P1", "pollutantN", "1")],
 	}
 
