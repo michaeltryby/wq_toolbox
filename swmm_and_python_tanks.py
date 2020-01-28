@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-28 10:31:55
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-28 10:39:31
+# @Last Modified time: 2020-01-28 10:53:17
 
 # IMPORT 
 # Import modules
@@ -51,23 +51,19 @@ class Treatment:
             self.env._getNodePollutant("Tank", "1")))
         return sol
 
+# Set up data containers
+inflows = []
+depth = []
+outflows = []
 conc = [] 
 time = []
+
+# Initiate treatment class
 treat = Treatment(env)
 done = False
 
 # Run Simulation
 while not done:
-    """
-    TO DO 1: build step class: needs to calculate dt, input it into solver,
-    run treatment, calls solver, and then sets pollutant concentration.
-
-    Needs to import the modules it needs to run. 
-
-    Use the step() PySWMM_Lite code for inspiration
-    """
-    # call current time
-
     # Compute the time step 
     t0 = env.sim._model.getCurrentSimulationTime()
     
@@ -77,35 +73,23 @@ while not done:
     # call current time step
     t1 = env.sim._model.getCurrentSimulationTime()
 
-    # calculate difference between two times (det)
+    # Calculate difference between two times (det)
     dt = t1 - t0
     dt = dt.seconds
     time.append(dt)
+    
     # Run water quality work
-    """
-    TO DO 2:
-    Start building cstr class, figure out how to call swmm fcns directly
-    so user doesn't have to input like below, should default get Co from 
-    swmm input file or user input
-
-    Things to Consider:
-    Think about the code you’re currently working on. What are the 
-    properties: the contracts and invariants? Can you use 
-    property-based testing framework to verify these automatically?
-    """
-    #sol = odeint(CSTR, 1.0, np.array([0,dt]), 
-    #   args=(0.10, env.sim._model.getNodeResult("P1",3), 
-    #       env._getNodeInflow("P1"), env._getLinkFlow("7"), 
-    #       env._getNodePollutant("P1", "1")))
     sol = treat.step(dt)
-
     c = float(sol[-1])
+
+    # Append data to data containers
     conc.append(c)
-    #print("Conc set to:", c)
+    inflows.append(env.getNodeInflow("Tank"))
+    depth.append(env.getNodeDepth("Tank"))
+    outflows.append(env.getLinkFlow("Valve"))
 
     # Set new concentration
     env._setNodePollutant("Tank","1", c)
-
 
 # End Simulation & Close SWMM
 env.sim._model.swmm_end()
@@ -131,6 +115,9 @@ valve_area = 1.0
 Qin = 5.0
 Cin = 0
 
+inflows2 = []
+depth2 = []
+outflows2 = []
 conc2 = []
 
 # Run simulation
@@ -145,15 +132,34 @@ for i in time:
     sol = odeint(CSTR, 10.0, np.array([0,i]), args=(0.10, V, Qin, Qout, Cin))
     c = float(sol[-1])
     conc2.append(c)
+    inflows2.append(Qin)
+    depth2.append(h)
+    outflows2.append(Qout)
 
+# Graph results
+plt.subplot(4, 1, 1)
+plt.plot(inflows, 'b', label="SWMM")
+plt.plot(inflows2, 'r--', label="Python")
+plt.ylabel("Inflows")
+plt.subplots_adjust(hspace= 0.5)
 
+plt.subplot(4, 1, 2)
+plt.plot(depth, 'b', label="SWMM")
+plt.plot(depth2, 'r--', label="Python")
+plt.ylabel("Depth")
+plt.subplots_adjust(hspace= 0.5)
 
-"""
-TO DO: Create a class for graphing treatment results
-"""
-plt.plot(conc)
-plt.plot(conc2)
+plt.subplot(4, 1, 3)
+plt.plot(outflows, 'b', label="SWMM")
+plt.ylabel("Outflow", 'r--', label="Python")
+plt.subplots_adjust(hspace= 0.5)
+
+plt.subplot(4, 1, 4)
+plt.plot(conc, 'b', label="SWMM")
+plt.plot(conc2, 'r--', label="Python")
 plt.xlabel("Time (s)")
-plt.ylabel("Concentration")
+plt.ylabel("Conc")
+
+plt.legend()
 plt.show()
 
