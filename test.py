@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-27 11:04:52
+# @Last Modified time: 2020-01-28 09:43:25
 
 # IMPORT 
 # Import modules
@@ -22,7 +22,7 @@ config1 = {
 
 # SIMULATION
 # Initialize the environment
-env = environment("./test_single.inp", ctrl=False)
+env = environment("./teank_test.inp", ctrl=False)
 done = False
 
 # Setup CSTR equation
@@ -43,7 +43,7 @@ class Treatment:
 		self.env = environment
 
 	def step(self, dt):
-		sol = odeint(CSTR, 1.0, np.array([0,dt]), 
+		sol = odeint(CSTR, 10.0, np.array([0,dt]), 
 			args=(0.10, self.env.sim._model.getNodeResult("P1",3), 
 			self.env._getNodeInflow("P1"), self.env._getLinkFlow("7"), 
 			self.env._getNodePollutant("P1", "1")))
