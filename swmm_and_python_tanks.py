@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-28 10:31:55
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-28 10:53:17
+# @Last Modified time: 2020-01-28 11:01:16
 
 # IMPORT 
 # Import modules
@@ -20,7 +20,6 @@ config1 = {
     "swmm_input": "./tank_test.inp",
     "states": [("Tank", "pollutantN", "1")],
     }
-
 
 # SIMULATION
 # Initialize the environment
@@ -84,9 +83,9 @@ while not done:
 
     # Append data to data containers
     conc.append(c)
-    inflows.append(env.getNodeInflow("Tank"))
-    depth.append(env.getNodeDepth("Tank"))
-    outflows.append(env.getLinkFlow("Valve"))
+    inflows.append(env._getNodeInflow("Tank"))
+    depth.append(env._getNodeDepth("Tank"))
+    outflows.append(env._getLinkFlow("Valve"))
 
     # Set new concentration
     env._setNodePollutant("Tank","1", c)
@@ -151,7 +150,8 @@ plt.subplots_adjust(hspace= 0.5)
 
 plt.subplot(4, 1, 3)
 plt.plot(outflows, 'b', label="SWMM")
-plt.ylabel("Outflow", 'r--', label="Python")
+plt.plot(outflows2, 'r--', label="Python")
+plt.ylabel("Outflows")
 plt.subplots_adjust(hspace= 0.5)
 
 plt.subplot(4, 1, 4)
