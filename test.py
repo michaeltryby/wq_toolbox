@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-28 09:57:48
+# @Last Modified time: 2020-01-28 10:39:51
 
 # IMPORT 
 # Import modules
@@ -50,6 +50,7 @@ class Treatment:
 		return sol
 
 conc = [] 
+time = []
 treat = Treatment(env)
 done = False
 
@@ -77,6 +78,7 @@ while not done:
 	# calculate difference between two times (det)
 	dt = t1 - t0
 	dt = dt.seconds
+	time.append(dt)
 	# Run water quality work
 	"""
 	TO DO 2:
@@ -110,8 +112,7 @@ env.sim._model.swmm_close()
 """
 TO DO: Create a class for graphing treatment results
 """
-time = np.arange(0, len(conc))
-plt.plot(time, conc)
+plt.plot(conc)
 plt.xlabel("Time (s)")
 plt.ylabel("Concentration")
 plt.show()
