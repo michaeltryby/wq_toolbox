@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 12:07:35
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-28 09:43:25
+# @Last Modified time: 2020-01-28 09:57:48
 
 # IMPORT 
 # Import modules
@@ -16,13 +16,13 @@ import matplotlib.pyplot as plt
 # Build the hydraulics configuration dictionary
 config1 = {
 	"swmm_input": "./tank_test.inp",
-	"states": [("P1", "pollutantN", "1")],
+	"states": [("Tank", "pollutantN", "1")],
 	}
 
 
 # SIMULATION
 # Initialize the environment
-env = environment("./teank_test.inp", ctrl=False)
+env = environment("./tank_test.inp", ctrl=False)
 done = False
 
 # Setup CSTR equation
@@ -44,9 +44,9 @@ class Treatment:
 
 	def step(self, dt):
 		sol = odeint(CSTR, 10.0, np.array([0,dt]), 
-			args=(0.10, self.env.sim._model.getNodeResult("P1",3), 
-			self.env._getNodeInflow("P1"), self.env._getLinkFlow("7"), 
-			self.env._getNodePollutant("P1", "1")))
+			args=(0.10, self.env.sim._model.getNodeResult("Tank",3), 
+			self.env._getNodeInflow("Tank"), self.env._getLinkFlow("Valve"), 
+			self.env._getNodePollutant("Tank", "1")))
 		return sol
 
 conc = [] 
@@ -97,10 +97,10 @@ while not done:
 
 	c = float(sol[-1])
 	conc.append(c)
-	print("Conc set to:", c)
+	#print("Conc set to:", c)
 
 	# Set new concentration
-	env._setNodePollutant("P1","1", c)
+	env._setNodePollutant("Tank","1", c)
 
 
 # End Simulation & Close SWMM
