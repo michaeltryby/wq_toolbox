@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-28 10:31:55
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-29 13:16:50
+# @Last Modified time: 2020-01-29 15:03:52
 
 # IMPORT 
 # Import modules
@@ -32,7 +32,7 @@ def CSTR(C, t, k, V, Qin, Qout, Cin):
     # CSTR equation
     if V!=0:
         dCdt = (Qin*Cin - Qout*C)/V - k*C
-        if np.abs(dCdt) < 0.001:
+        if np.abs(dCdt) < 10**-5:
             dCdt = 0
     else:
         dCdt = 0
@@ -44,10 +44,10 @@ class Treatment:
         self.env = environment
 
     def step(self, dt):
-        sol = odeint(CSTR, 100.0, np.array([0,dt]), 
+        sol = odeint(CSTR, 0.0, np.array([0,dt]), 
             args=(0.10, self.env.sim._model.getNodeResult("Tank",3), 
             self.env._getNodeInflow("Tank"), self.env._getLinkFlow("Valve"), 
-            self.env._getNodePollutant("Tank", "1")))
+            1.0))
         return sol
 
 # Set up data containers
@@ -91,6 +91,8 @@ while not done:
     # Set new concentration
     env._setNodePollutant("Tank","1", c)
 
+print(conc[0:100])
+
 # End Simulation & Close SWMM
 env.sim._model.swmm_end()
 env.sim._model.swmm_close()
@@ -113,7 +115,7 @@ h = V / 100
 Cd = 1.0
 valve_area = 1.0
 Qin = 5.0
-Cin = 0
+Cin = 1.0
 
 inflows2 = []
 depth2 = []
@@ -129,12 +131,14 @@ for i in time:
         Qout = valve_area * Cd * np.sqrt(2 * 9.80 * h)
     V, h = tank(A, Qin, Qout, V)
     # Calculate CSTR concentration
-    sol = odeint(CSTR, 100.0, np.array([0,i]), args=(0.10, V, Qin, Qout, Cin))
+    sol = odeint(CSTR, 0.0, np.array([0,i]), args=(0.10, V, Qin, Qout, Cin))
     c = float(sol[-1])
     conc2.append(c)
     inflows2.append(Qin)
     depth2.append(h)
     outflows2.append(Qout)
+
+print(conc2[0:100])
 
 print(" Max SWMM conc " + repr(max(conc)) + " at index " + repr(conc.index(max(conc))))
 print("Min SWMM conc " + repr(min(conc)) + " at index " + repr(conc.index(min(conc))))
