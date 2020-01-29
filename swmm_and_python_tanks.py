@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-28 10:31:55
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-28 11:01:16
+# @Last Modified time: 2020-01-29 13:16:50
 
 # IMPORT 
 # Import modules
@@ -44,7 +44,7 @@ class Treatment:
         self.env = environment
 
     def step(self, dt):
-        sol = odeint(CSTR, 10.0, np.array([0,dt]), 
+        sol = odeint(CSTR, 100.0, np.array([0,dt]), 
             args=(0.10, self.env.sim._model.getNodeResult("Tank",3), 
             self.env._getNodeInflow("Tank"), self.env._getLinkFlow("Valve"), 
             self.env._getNodePollutant("Tank", "1")))
@@ -63,6 +63,7 @@ done = False
 
 # Run Simulation
 while not done:
+
     # Compute the time step 
     t0 = env.sim._model.getCurrentSimulationTime()
     
@@ -128,12 +129,20 @@ for i in time:
         Qout = valve_area * Cd * np.sqrt(2 * 9.80 * h)
     V, h = tank(A, Qin, Qout, V)
     # Calculate CSTR concentration
-    sol = odeint(CSTR, 10.0, np.array([0,i]), args=(0.10, V, Qin, Qout, Cin))
+    sol = odeint(CSTR, 100.0, np.array([0,i]), args=(0.10, V, Qin, Qout, Cin))
     c = float(sol[-1])
     conc2.append(c)
     inflows2.append(Qin)
     depth2.append(h)
     outflows2.append(Qout)
+
+print(" Max SWMM conc " + repr(max(conc)) + " at index " + repr(conc.index(max(conc))))
+print("Min SWMM conc " + repr(min(conc)) + " at index " + repr(conc.index(min(conc))))
+print("SWMM Diff " + repr(max(conc) - min(conc)))
+print("Max Python conc " + repr(max(conc2)) + " at index " + repr(conc2.index(max(conc2))))
+print("Min Python conc " + repr(min(conc2)) + " at index " + repr(conc2.index(min(conc2))))
+print("Python Diff " + repr(max(conc2) - min(conc2)))
+
 
 # Graph results
 plt.subplot(4, 1, 1)
@@ -141,25 +150,28 @@ plt.plot(inflows, 'b', label="SWMM")
 plt.plot(inflows2, 'r--', label="Python")
 plt.ylabel("Inflows")
 plt.subplots_adjust(hspace= 0.5)
+plt.legend()
 
 plt.subplot(4, 1, 2)
 plt.plot(depth, 'b', label="SWMM")
 plt.plot(depth2, 'r--', label="Python")
 plt.ylabel("Depth")
 plt.subplots_adjust(hspace= 0.5)
+plt.legend()
 
 plt.subplot(4, 1, 3)
 plt.plot(outflows, 'b', label="SWMM")
 plt.plot(outflows2, 'r--', label="Python")
 plt.ylabel("Outflows")
 plt.subplots_adjust(hspace= 0.5)
+plt.legend()
 
 plt.subplot(4, 1, 4)
 plt.plot(conc, 'b', label="SWMM")
 plt.plot(conc2, 'r--', label="Python")
 plt.xlabel("Time (s)")
 plt.ylabel("Conc")
-
 plt.legend()
+
 plt.show()
 
