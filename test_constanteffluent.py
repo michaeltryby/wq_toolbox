@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-02-05 10:05:44
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-02-11 08:30:26
+# @Last Modified time: 2020-02-11 09:14:48
 
 # IMPORT
 # Import modules
@@ -15,27 +15,31 @@ import matplotlib.pyplot as plt
 env = environment("./tank_test_forcomparison.inp", ctrl=False)
 done = False
 conc = []
-conc2 = []
-depth = []
-flow = []
+#depth = []
+#flow = []
 
 # Run Simulation
 while not done:
-    # Steps the simulation
+    # Steps th esimulation
+    done = env.step()
+
+    # Set new concentration (try 1)
     c = env._getNodePollutant("Tank", 0)
-    print(c)
-    # Set new concentration
-    
     if 0 <= c <= 5: 
         pass
     elif c > 5:
         env._setNodePollutant("Tank", 0, 5)
 
-    done = env.step()
+    # Set new concentration (try 2)
+    """
+    c = env._getNodePollutant("Tank", 0)
+    if 0 <= c <= 5: 
+        pass
+    elif c > 5:
+        d = min(c, 5)
+        env._setNodePollutant("Tank", 0, d)
+    """
 
-    #d = min(c, 5.0)
-    #print(d)
-    #env._setNodePollutant("Tank", 0, d)
 
     #env._getNodePollutant("Tank", 0)
     #env._setNodePollutant("Tank", 0, 5)
@@ -52,8 +56,8 @@ env.sim._model.swmm_close()
 """
 TO DO: Create a class for graphing treatment results
 """
-plt.plot(conc)
+plt.plot(conc[6000:8000])
 #plt.plot(conc2)
-plt.xlabel("Time (s)")
+#plt.xlabel("Time (s)")
 plt.ylabel("Concentration")
 plt.show()
