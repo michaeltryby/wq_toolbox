@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-02-05 10:05:44
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-02-11 08:35:30
+# @Last Modified time: 2020-02-11 09:36:11
 
 # IMPORT
 # Import modules
@@ -16,17 +16,21 @@ env = environment("./tank_test_forcomparison.inp", ctrl=False)
 done = False
 conc = []
 conc2 = []
-depth = []
-flow = []
+#depth = []
+#flow = []
 
 # Run Simulation
 while not done:
     # Steps the simulation
-    c = env._getNodePollutant("Tank", 0)
-    # Set new concentration
-    env._setNodePollutant("Tank", 0, c*.5)
-
     done = env.step()
+
+    # Get current concentration
+    c = env._getNodePollutant("Tank", 0)
+    
+    # Set new concentration
+    d = c * 0.5
+    print(d)
+    env._setNodePollutant("Tank", 0, d)
 
     conc.append(env._getNodePollutant("Tank", 0))
     #conc2.append(env._getLinkPollutant("Valve", 0))
@@ -42,7 +46,6 @@ env.sim._model.swmm_close()
 TO DO: Create a class for graphing treatment results
 """
 plt.plot(conc)
-#plt.plot(conc2)
 plt.xlabel("Time (s)")
 plt.ylabel("Concentration")
 plt.show()
