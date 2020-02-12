@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-02-05 10:05:44
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-02-11 09:44:57
+# @Last Modified time: 2020-02-11 09:47:39
 
 # IMPORT
 # Import modules
@@ -43,7 +43,7 @@ while not done:
 
     env._setNodePollutant("Tank", 0, C_new)
 
-    conc.append(env._getNodePollutant("Tank", 0))
+    conc.append(C)
     #conc2.append(env._getLinkPollutant("Valve", 0))
     #depth.append(env._getNodeDepth("Tank"))
     #flow.append(env._getNodeInflow("Outfall"))

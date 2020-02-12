@@ -1,0 +1,48 @@
+Comparing SWMM & Python Results with different inital concentrations:
+
+Co = 1.0:
+Max SWMM conc 0.8950449370601992 at index 0
+Min SWMM conc 0.8547529587964151 at index 18
+SWMM Max-Min Diff 0.040291978263784056
+Max Python conc 0.9048374463533981 at index 0
+Min Python conc 0.8106882741834968 at index 1
+Python Max-Min Diff 0.09414917216990137
+Max Diffs 0.00979250929319897
+Min Diffs -0.04406468461291835
+
+Co = 10.0:
+Max SWMM conc 8.950449212385985 at index 0
+Min SWMM conc 8.54752950698204 at index 18
+SWMM Max-Min Diff 0.4029197054039457
+Max Python conc 9.048374306396502 at index 0
+Min Python conc 8.106882635866366 at index 1
+Python Max-Min Diff 0.9414916705301355
+Max Diffs 0.09792509401051674
+Min Diffs -0.440646871115673
+
+Co = 20.0:
+Max SWMM conc 17.900898414487724 at index 0
+Min SWMM conc 17.09505900626699 at index 18
+SWMM Max-Min Diff 0.8058394082207343
+Max Python conc 18.09674859955256 at index 0
+Min Python conc 16.21376525524919 at index 1
+Python Max-Min Diff 1.8829833443033692
+Max Diffs 0.19585018506483465
+Min Diffs -0.8812937510178003
+
+Co = 100.0:
+Max SWMM conc 89.50449203568054 at index 0
+Min SWMM conc 85.47529499726345 at index 18
+SWMM Max-Min Diff 4.029197038417095
+Max Python conc 90.48374294442759 at index 0
+Min Python conc 81.06882621083068 at index 1
+Python Max-Min Diff 9.414916733596911
+Max Diffs 0.9792509087470478
+Min Diffs -4.406468786432768
+
+plt.plot(Co,SWMM_Diff, label="SWMM")
+plt.plot(Co, Py_Diff, label="Python")
+plt.xlabel("Initial Co")
+plt.ylabel("Max - Min")
+plt.legend()
+plt.show()
