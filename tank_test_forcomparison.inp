@@ -5,7 +5,7 @@
 ;;Option             Value
 FLOW_UNITS           CMS
 INFILTRATION         HORTON
-FLOW_ROUTING         KINWAVE
+FLOW_ROUTING         DYNWAVE
 LINK_OFFSETS         DEPTH
 MIN_SLOPE            0
 ALLOW_PONDING        NO
@@ -20,10 +20,10 @@ END_TIME             08:00:00
 SWEEP_START          01/01
 SWEEP_END            02/28
 DRY_DAYS             0
-REPORT_STEP          00:00:01
-WET_STEP             00:00:01
-DRY_STEP             00:00:01
-ROUTING_STEP         0:00:01 
+REPORT_STEP          00:00:60
+WET_STEP             00:00:60
+DRY_STEP             00:00:60
+ROUTING_STEP         00:00:01 
 
 INERTIAL_DAMPING     PARTIAL
 NORMAL_FLOW_LIMITED  BOTH
@@ -107,7 +107,7 @@ Subcatch         Test             100
 [BUILDUP]
 ;;Land Use       Pollutant        Function   Coeff1     Coeff2     Coeff3     Per Unit  
 ;;-------------- ---------------- ---------- ---------- ---------- ---------- ----------
-Test             P1               POW        50         1.0        1          AREA      
+Test             P1               POW        0          0          0          AREA      
 
 [WASHOFF]
 ;;Land Use       Pollutant        Function   Coeff1     Coeff2     SweepRmvl  BmpRmvl   
@@ -128,11 +128,11 @@ Tank_Curve                  5          100
 ;;Name           Date       Time       Value     
 ;;-------------- ---------- ---------- ----------
 TestRain                    1          0         
-TestRain                    2          0.5       
-TestRain                    3          0.75      
-TestRain                    4          1         
-TestRain                    5          0.75      
-TestRain                    6          0.5       
+TestRain                    2          0       
+TestRain                    3          0      
+TestRain                    4          0         
+TestRain                    5          0      
+TestRain                    6          0       
 TestRain                    7          0         
 
 [PATTERNS]
