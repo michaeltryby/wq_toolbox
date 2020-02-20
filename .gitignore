@@ -1,5 +1,4 @@
-
-tank_test_forcomparison.out
-tank_test_forcomparison.rpt
+*.PNG
+*.png
 *.rpt
 *.out
