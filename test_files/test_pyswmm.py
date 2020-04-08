@@ -8,31 +8,31 @@ flow1 = []
 
 # Create simulation 
 with Simulation("./tank_test.inp") as sim:
-    # Turn on externalTreatment flag
-    sim._model.setNodeParam("Tank", 5, 1)
     Tank = Nodes(sim)["Tank"]
 
     # Step through the simulation    
-    for step in sim:
+    for index, step in enumerate(sim):
+        #if index == 5:
+        #    sim._model.setNodePollutant("Tank", 0, 20)
         conc = Tank.pollut_quality
         print(conc)
-        #c1 = conc['P1']*0.5
-        sim._model.setNodePollutant("Tank", 0, 2)
+        print(sim._model.getNodePollutant("Tank", 0))
+        sim._model.setNodePollutant("Tank", 0, 5)
         conc1.append(conc['P1'])
         flow1.append(sim._model.getNodeResult("Tank", 0))
-
 
 conc2 = []
 flow2 = []
 
 # Create simulation 
 with Simulation("./tank_test_percremoval.inp") as sim:
-    
+    Tank = Nodes(sim)["Tank"]
+
     # Step through the simulation    
     for step in sim:
-        conc = Tank.pollut_quality
-        print(conc)
-        conc2.append(conc['P1'])
+        c0 = Tank.pollut_quality
+        print(c0)
+        conc2.append(c0['P1'])
         flow2.append(sim._model.getNodeResult("Tank", 0))
 
 
