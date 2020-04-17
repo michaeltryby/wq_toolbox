@@ -1,0 +1,86 @@
+
+# Single Tank, Constant Inflow, Nth Order Reaction
+
+# PySWMM Toolbox Treatment
+  **************************            P1
+  Quality Routing Continuity            kg
+  **************************    ----------
+  Dry Weather Inflow .......         0.000
+  Wet Weather Inflow .......         0.000
+  Groundwater Inflow .......         0.000
+  RDII Inflow ..............         0.000
+  External Inflow ..........        89.965
+  External Outflow .........        39.328
+  Flooding Loss ............         0.000
+  Exfiltration Loss ........         0.000
+  Mass Reacted .............        50.085
+  Initial Stored Mass ......         0.000
+  Final Stored Mass ........         0.559
+  Continuity Error (%) .....        -0.006
+
+  ***********************
+  Outfall Loading Summary
+  ***********************
+  
+  -------------------------------------------------------------------------
+                         Flow       Avg       Max       Total         Total
+                         Freq      Flow      Flow      Volume            P1
+  Outfall Node           Pcnt       CMS       CMS    10^6 ltr            kg
+  -------------------------------------------------------------------------
+  Outfall              100.00     4.929     5.000       8.869        39.339
+  -------------------------------------------------------------------------
+  System               100.00     4.929     5.000       8.869        39.339
+
+  ***************************
+  Link Pollutant Load Summary
+  ***************************
+  
+  ----------------------------------
+                                  P1
+  Link                            kg
+  ----------------------------------
+  Valve                       39.339
+
+
+********************************************************************************
+
+# SWMM Comparision Treatment
+  **************************            P1
+  Quality Routing Continuity            kg
+  **************************    ----------
+  Dry Weather Inflow .......         0.000
+  Wet Weather Inflow .......         0.000
+  Groundwater Inflow .......         0.000
+  RDII Inflow ..............         0.000
+  External Inflow ..........        89.965
+  External Outflow .........        39.247
+  Flooding Loss ............         0.000
+  Exfiltration Loss ........         0.000
+  Mass Reacted .............        50.164
+  Initial Stored Mass ......         0.000
+  Final Stored Mass ........         0.559
+  Continuity Error (%) .....        -0.005
+
+    ***********************
+  Outfall Loading Summary
+  ***********************
+  
+  -------------------------------------------------------------------------
+                         Flow       Avg       Max       Total         Total
+                         Freq      Flow      Flow      Volume            P1
+  Outfall Node           Pcnt       CMS       CMS    10^6 ltr            kg
+  -------------------------------------------------------------------------
+  Outfall              100.00     4.929     5.000       8.869        39.258
+  -------------------------------------------------------------------------
+  System               100.00     4.929     5.000       8.869        39.258
+
+    ***************************
+  Link Pollutant Load Summary
+  ***************************
+  
+  ----------------------------------
+                                  P1
+  Link                            kg
+  ----------------------------------
+  Valve                       39.258
+

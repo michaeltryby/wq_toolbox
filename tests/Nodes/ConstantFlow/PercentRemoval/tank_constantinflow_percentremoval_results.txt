@@ -1,0 +1,22 @@
+
+# Single Tank, Constant Inflow, Percent Removal
+
+# PySWMM Toolbox
+Quality Error:  0.0
+Flow Routing Error:  0.0
+Runoff Error:  0.0
+
+# massLost/timestep
+first timestep:
+  massLost: 2643.888826
+every other timestep:
+  massLost: 882.768362
+
+# SWMM Comparision
+Quality Error:  0.0
+Flow Routing Error:  0.0
+Runoff Error:  0.0
+
+# massLost
+each timestep:
+  massLost: 882.768362

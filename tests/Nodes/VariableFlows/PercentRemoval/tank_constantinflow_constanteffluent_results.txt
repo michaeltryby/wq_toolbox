@@ -1,0 +1,25 @@
+
+# Single Tank, Variable Inflow, Percent Removal
+
+# PySWMM Toolbox
+Quality Error:  0.0
+Flow Routing Error:  0.0
+Runoff Error:  0.0
+
+# massLost when effluent = 5
+ massLost: 2452.408467 
+
+# massLost otherwise:
+ massLost: 0.0
+
+
+# SWMM Comparision
+Quality Error:  0.0
+Flow Routing Error:  0.0
+Runoff Error:  0.0
+
+# massLost when effluent = 50:
+ massLost: 2452.408467
+
+# massLost otherwise:
+ massLost: 0.0
