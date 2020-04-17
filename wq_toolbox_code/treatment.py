@@ -2,21 +2,18 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-01-20 15:42:16
+# @Last Modified time: 2020-04-17 13:25:51
 
 # IMPORT MODULES
-from pyswmm_lite import environment as env
+from pyswmm import Simulation, Nodes, Links
 from wq_toolbox.solver import Solve
-import math
-
+import numpy as np
 
 # MAIN CLASS FOR WQ_TOOLBOX
 class Treatment:
 	"""
 	Attributes
     ----------
-    config1 : dict
-        dictionary for pyswmm_lite with swmm_input and, action and state space `(ID, attribute)`
 	"""
 
     # TREATMENT OPTIONS
@@ -52,15 +49,3 @@ class Treatment:
 	def User_Defined(self, equation, solver_selected):
 		# Allows user to define their own treatment equation
 		Solve.solver_selected()
-
-	# METHODS TO ADD LATER
-	# log water quality data
-	def _logger(self,):
-
-	#  estimates the performance
-	def performance(self):
-
-	# track a pollutant through the system
-	def tracker(self):
-	"""
-

@@ -1,7 +1,12 @@
+# -*- coding: utf-8 -*-
+# @Author: Brooke Mason
+# @Date:   2020-01-15 09:57:05
+# @Last Modified by:   Brooke Mason
+# @Last Modified time: 2020-04-17 13:25:18
+
 from pyswmm import Simulation, Nodes
 import numpy as np
 import matplotlib.pyplot as plt
-import faulthandler; faulthandler.enable()
 
 # Multiple Tanks, Variable Inflow, Nth Order Reaction
 
