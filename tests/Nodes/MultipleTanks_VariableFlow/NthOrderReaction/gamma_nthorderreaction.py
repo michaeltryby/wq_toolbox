@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-17 13:25:18
+# @Last Modified time: 2020-04-22 13:37:42
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -22,8 +22,6 @@ with Simulation("./gamma_notreatment.inp") as sim:
     Tank5 = Nodes(sim)["5"]
     # Get simulation starting time
     start_time = sim.start_time
-    # Get simulation ending time
-    end_time = sim.end_time
     # Initial Value for Last Step
     last_timestep = start_time
 

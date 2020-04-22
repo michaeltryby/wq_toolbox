@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-04-21 15:10:25
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-21 15:19:54
+# @Last Modified time: 2020-04-22 12:29:21
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -17,6 +17,16 @@ conc5 = []
 flow2 = [] 
 flow5 = [] 
 
+# OPTION 1
+class NodeConstantEffluent:
+    def treatment(self, node_dict):
+        # Read from user dictionary
+        for node in node_dict:
+            for pollutant in node_dict[node]:
+                # Set constant effluent concentration each time step
+                sim._model.setNodePollutant(str(node), pollutant, node_dict[node][pollutant])
+"""
+# OPTION 2
 #Call during simulation
 def NodeConstantEffluent(node_dict):
     # Read from user dictionary
@@ -24,8 +34,9 @@ def NodeConstantEffluent(node_dict):
         for pollutant in node_dict[node]:
             # Set constant effluent concentration each time step
             sim._model.setNodePollutant(str(node), pollutant, node_dict[node][pollutant])
-
+"""
 dict1 = {'2': {0: 5}, '5': {0: 15}}
+NCE = NodeConstantEffluent()
 
 with Simulation("./gamma_notreatment.inp") as sim:
     Tank2 = Nodes(sim)["2"]
@@ -33,7 +44,8 @@ with Simulation("./gamma_notreatment.inp") as sim:
     # Step through the simulation    
     for step in sim:
         # Run treatment each time step
-        NodeConstantEffluent(dict1)
+        NCE.treatment(dict1)
+        #NodeConstantEffluent(dict1)
         # Get newQual for Tank
         c2 = Tank2.pollut_quality
         conc2.append(c2['P1'])

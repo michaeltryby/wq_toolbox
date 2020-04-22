@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-21 15:20:31
+# @Last Modified time: 2020-04-22 12:33:35
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -17,19 +17,35 @@ conc5 = []
 flow2 = [] 
 flow5 = [] 
 
+# OPTION 1
+class NodePercentRemoval:
+    def treatment(self, node_dict):
+        # Read from user dictionary
+        for node in node_dict:
+            for pollutant in node_dict[node]:
+                   # Get Cin for each pollutant/node and append to Cin
+                Cin = sim._model.getNodeCin(node, pollutant)
+                # Calculate new concentration from percent removal treatment
+                Cnew = (1 - node_dict[node][pollutant])*Cin
+                # Set new concentration each time step
+                sim._model.setNodePollutant(node, pollutant, Cnew)
+
+"""
+# OPTION 2
 # Call during simulation
-def NodePercentRemoval(Node_dict): 
-    for node in Node_dict:
-        for pollutant in Node_dict[node]:
+def NodePercentRemoval(node_dict): 
+    for node in node_dict:
+        for pollutant in node_dict[node]:
             # Get Cin for each pollutant/node and append to Cin
             Cin = sim._model.getNodeCin(node, pollutant)
             # Calculate new concentration from percent removal treatment
-            Cnew = (1 - Node_dict[node][pollutant])*Cin
+            Cnew = (1 - node_dict[node][pollutant])*Cin
             # Set new concentration each time step
             sim._model.setNodePollutant(node, pollutant, Cnew)
+"""
 
 dict1 = {'2': {0: 0.3}, '5': {0: 0.1}}
-
+NPR = NodePercentRemoval()
 
 with Simulation("./gamma_notreatment.inp") as sim:
     Tank2 = Nodes(sim)["2"]
@@ -37,7 +53,8 @@ with Simulation("./gamma_notreatment.inp") as sim:
     # Step through the simulation    
     for step in sim:
         # Run treatment each time step
-        NodePercentRemoval(dict1)
+        NPR.treatment(dict1)
+        #NodePercentRemoval(dict1)
         # Get newQual for Tank
         c2 = Tank2.pollut_quality
         conc2.append(c2['P1'])
