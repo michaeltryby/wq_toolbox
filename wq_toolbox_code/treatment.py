@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-23 14:22:33
+# @Last Modified time: 2020-04-23 15:51:07
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -19,6 +19,9 @@ dict = {'SWMM_Node_ID1': {pindex1: conc1, pindex2: conc2},
 dict1 = {'Node1': {0: 5, 1: 10, 2: 15}, 'Node2': {0: 2, 1: 4, 2: 6}}
 
 class EventMeanConc:
+    def __init__(self, sim):
+        self.sim = sim
+        
     def treatment(self, node_dict):
         # Read from user dictionary
         for node in node_dict:
@@ -38,6 +41,9 @@ dict = {'SWMM_Node_ID1': {pindex1: %R1, pindex2: %R2},
 dict2 = {'Node1': {0: 0.5, 1: 0.10, 2: 0.15}, 'Node2': {0: 0.2, 1: 0.4, 2: 0.6}}
 
 class ConstantRemoval:
+    def __init__(self, sim):
+        self.sim = sim
+
     def treatment(self, node_dict):
         # Read from user dictionary
         for node in node_dict:
@@ -60,6 +66,9 @@ dict2 = {'Node1': {0: [0.75, 0.50], 1: [0.10, 0.40]},
         'Node2': {0: [0.75, 0.50], 1: [0.10, 0.40]}}
 
 class CoRemoval:
+    def __init__(self, sim):
+        self.sim = sim
+
     def treatment(self, node_dict):
         # Read from user dictionary
         for node in node_dict:
@@ -82,6 +91,9 @@ dict2 = {'Node1': {0: [0.50, 50, 0.75], 1: [0.60, 20, 0.80]},
         'Node2': {0: [0.50, 50, 0.75], 1: [0.60, 20, 0.80]}}
 
 class ConcDependRemoval:
+    def __init__(self, sim):
+        self.sim = sim
+
     def treatment(self, node_dict):
         # Read from user dictionary
         for node in node_dict:
@@ -107,28 +119,27 @@ dict = {'SWMM_Node_ID1': {pindex1: [k, n], pindex2: [k, n]},
 dict2 = {'Node1': {0: [0.01, 0.5], 1: [0.01, 0.5], 2: [0.01, 0.5]}, 
         'Node2': {0: [0.01, 0.5], 1: [0.01, 0.5], 2: [0.01, 0.5]}}
 
-# OPTION 1
 class NthOrderReaction:
-    def time_tracking(self):
-        # Get simulation starting time
-        start_time = sim.start_time
-        # Initial Value for Last Step
-        last_timestep = start_time
-        return last_timestep
+    def __init__(self, sim):
+        self.sim = sim
+        self.start_time = sim.start_time
+        self.last_timestep = self.start_time 
 
-    def treatment(self, node_dict, last_timestep):
+    def treatment(self, node_dict):
         # Get current time
         current_step = sim.current_time
         # Calculate model dt in seconds
-        dt = (current_step - last_timestep).total_seconds()
+        dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
-        last_timestep = current_step
+        self.last_timestep = current_step
 
         for node in node_dict:
             for pollutant in node_dict[node]:
-                # Calculate new concentration
-                Cnew = sim._model.getNodePollutant(node, pollutant) - (node_dict[node][pollutant][0]*(sim._model.getNodePollutant(node, pollutant)**node_dict[node][pollutant][1])*dt)
-                # Set concentration
+                # Get current concentration
+                C = sim._model.getNodePollutant(node, pollutant)
+                # Calculate treatment
+                Cnew = C - (node_dict[node][pollutant][0]*(C**node_dict[node][pollutant][1])*dt)
+                # Set concentration each time step
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
 
@@ -144,6 +155,9 @@ dict2 = {'Node1': {0: [0.01, 20], 1: [0.01, 20], 2: [0.01, 20]},
         'Node2': {0: [0.01, 20], 1: [0.01, 20], 2: [0.01, 20]}}
 
 class kCModel:
+    def __init__(self, sim):
+        self.sim = sim
+
     def treatment(self, node_dict):
         # Read from user dictionary
         for node in node_dict:
@@ -170,12 +184,10 @@ dict2 = {'Node1': {0: [0.01, 20], 1: [0.01, 20], 2: [0.01, 20]},
         'Node2': {0: [0.01, 20], 1: [0.01, 20], 2: [0.01, 20]}}
 
 class GravitySettling:
-    def time_tracking(self):
-        # Get simulation starting time
-        start_time = sim.start_time
-        # Initial Value for Last Step
-        last_timestep = start_time
-        return last_timestep
+    def __init__(self, sim):
+        self.sim = sim
+        self.start_time = sim.start_time
+        self.last_timestep = self.start_time 
 
     def treatment(self, node_dict, last_timestep):
         # Get current time
@@ -206,12 +218,10 @@ dict2 = {'Node1': {0: [0.01, 20], 1: [0.01, 20], 2: [0.01, 20]},
         'Node2': {0: [0.01, 20], 1: [0.01, 20], 2: [0.01, 20]}}
 
 class CSTR:
-    def time_tracking(self):
-        # Get simulation starting time
-        start_time = sim.start_time
-        # Initial Value for Last Step
-        last_timestep = start_time
-        return last_timestep
+    def __init__(self, sim):
+        self.sim = sim
+        self.start_time = sim.start_time
+        self.last_timestep = self.start_time 
 
     def treatment(self, node_dict):
         # Get current time

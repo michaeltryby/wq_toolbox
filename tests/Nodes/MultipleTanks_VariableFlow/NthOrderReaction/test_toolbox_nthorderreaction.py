@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-22 15:56:02
+# @Last Modified time: 2020-04-23 15:45:21
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -18,20 +18,18 @@ flow2 = []
 flow5 = []
 
 class NthOrderReaction:
-    def time_tracking(self):
-        # Get simulation starting time
-        start_time = sim.start_time
-        # Initial Value for Last Step
-        last_timestep = start_time
-        return last_timestep
+    def __init__(self, sim):
+        self.sim = sim
+        self.start_time = sim.start_time
+        self.last_timestep = self.start_time 
 
-    def treatment(self, node_dict, last_timestep):
+    def treatment(self, node_dict):
         # Get current time
         current_step = sim.current_time
         # Calculate model dt in seconds
-        dt = (current_step - last_timestep).total_seconds()
+        dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
-        last_timestep = current_step
+        self.last_timestep = current_step
 
         for node in node_dict:
             for pollutant in node_dict[node]:
@@ -43,17 +41,17 @@ class NthOrderReaction:
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
 dict1 = {'2': {0: [0.01, 0.5]}, '5': {0: [0.01, 0.5]}}
-NOR = NthOrderReaction()
 
 with Simulation("./gamma_notreatment.inp") as sim:
     Tank2 = Nodes(sim)["2"]
     Tank5 = Nodes(sim)["5"]
-    last_timestep = NOR.time_tracking()
+    #last_timestep = NOR.time_tracking()
+    NOR = NthOrderReaction(sim)
 
     # Step through the simulation    
     for step in sim:
         # Run treatment each time step
-        NOR.treatment(dict1, last_timestep)
+        NOR.treatment(dict1)
         # Get influent concentration
         c2 = Tank2.pollut_quality
         conc2.append(c2['P1'])
