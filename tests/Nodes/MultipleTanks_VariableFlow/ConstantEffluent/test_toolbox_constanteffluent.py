@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-04-21 15:10:25
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-22 12:29:21
+# @Last Modified time: 2020-04-24 09:54:27
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -17,26 +17,19 @@ conc5 = []
 flow2 = [] 
 flow5 = [] 
 
-# OPTION 1
-class NodeConstantEffluent:
+class EventMeanConc:
+    def __init__(self, sim):
+        self.sim = sim
+        
     def treatment(self, node_dict):
         # Read from user dictionary
         for node in node_dict:
             for pollutant in node_dict[node]:
-                # Set constant effluent concentration each time step
-                sim._model.setNodePollutant(str(node), pollutant, node_dict[node][pollutant])
-"""
-# OPTION 2
-#Call during simulation
-def NodeConstantEffluent(node_dict):
-    # Read from user dictionary
-    for node in node_dict:
-        for pollutant in node_dict[node]:
-            # Set constant effluent concentration each time step
-            sim._model.setNodePollutant(str(node), pollutant, node_dict[node][pollutant])
-"""
+                # Set concentration
+                sim._model.setNodePollutant(node, pollutant, node_dict[node][pollutant])
+
 dict1 = {'2': {0: 5}, '5': {0: 15}}
-NCE = NodeConstantEffluent()
+EMC = EventMeanConc(sim)
 
 with Simulation("./gamma_notreatment.inp") as sim:
     Tank2 = Nodes(sim)["2"]
@@ -44,7 +37,7 @@ with Simulation("./gamma_notreatment.inp") as sim:
     # Step through the simulation    
     for step in sim:
         # Run treatment each time step
-        NCE.treatment(dict1)
+        EMC.treatment(dict1)
         #NodeConstantEffluent(dict1)
         # Get newQual for Tank
         c2 = Tank2.pollut_quality

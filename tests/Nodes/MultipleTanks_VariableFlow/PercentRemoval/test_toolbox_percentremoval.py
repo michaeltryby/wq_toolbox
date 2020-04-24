@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-22 12:33:35
+# @Last Modified time: 2020-04-24 09:54:18
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -17,35 +17,21 @@ conc5 = []
 flow2 = [] 
 flow5 = [] 
 
-# OPTION 1
-class NodePercentRemoval:
+class ConstantRemoval:
+    def __init__(self, sim):
+        self.sim = sim
+
     def treatment(self, node_dict):
         # Read from user dictionary
         for node in node_dict:
             for pollutant in node_dict[node]:
-                   # Get Cin for each pollutant/node and append to Cin
-                Cin = sim._model.getNodeCin(node, pollutant)
-                # Calculate new concentration from percent removal treatment
-                Cnew = (1 - node_dict[node][pollutant])*Cin
-                # Set new concentration each time step
+                # Calculate new concentration
+                Cnew = (1 - Node_dict[node][pollutant])*sim._model.getNodeCin(node, pollutant)
+                # Set new concentration 
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
-"""
-# OPTION 2
-# Call during simulation
-def NodePercentRemoval(node_dict): 
-    for node in node_dict:
-        for pollutant in node_dict[node]:
-            # Get Cin for each pollutant/node and append to Cin
-            Cin = sim._model.getNodeCin(node, pollutant)
-            # Calculate new concentration from percent removal treatment
-            Cnew = (1 - node_dict[node][pollutant])*Cin
-            # Set new concentration each time step
-            sim._model.setNodePollutant(node, pollutant, Cnew)
-"""
-
 dict1 = {'2': {0: 0.3}, '5': {0: 0.1}}
-NPR = NodePercentRemoval()
+CR = ConstantRemoval(sim)
 
 with Simulation("./gamma_notreatment.inp") as sim:
     Tank2 = Nodes(sim)["2"]
