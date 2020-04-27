@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-23 15:45:21
+# @Last Modified time: 2020-04-27 12:38:13
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -18,12 +18,13 @@ flow2 = []
 flow5 = []
 
 class NthOrderReaction:
-    def __init__(self, sim):
+    def __init__(self, sim, node_dict):
         self.sim = sim
+        self.node_dict = node_dict
         self.start_time = sim.start_time
         self.last_timestep = self.start_time 
 
-    def treatment(self, node_dict):
+    def treatment(self):
         # Get current time
         current_step = sim.current_time
         # Calculate model dt in seconds
@@ -31,12 +32,14 @@ class NthOrderReaction:
         # Updating reference step
         self.last_timestep = current_step
 
-        for node in node_dict:
-            for pollutant in node_dict[node]:
-                # Get current concentration
+        for node in self.node_dict:
+            for pollutant in self.node_dict[node]:
+                # Get parameters
+                k = self.node_dict[node][pollutant][0]
+                n = self.node_dict[node][pollutant][1]
                 C = sim._model.getNodePollutant(node, pollutant)
                 # Calculate treatment
-                Cnew = C - (node_dict[node][pollutant][0]*(C**node_dict[node][pollutant][1])*dt)
+                Cnew = C - (k*(C**n)*dt)
                 # Set concentration each time step
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
@@ -45,13 +48,12 @@ dict1 = {'2': {0: [0.01, 0.5]}, '5': {0: [0.01, 0.5]}}
 with Simulation("./gamma_notreatment.inp") as sim:
     Tank2 = Nodes(sim)["2"]
     Tank5 = Nodes(sim)["5"]
-    #last_timestep = NOR.time_tracking()
-    NOR = NthOrderReaction(sim)
+    NOR = NthOrderReaction(sim, dict1)
 
     # Step through the simulation    
     for step in sim:
         # Run treatment each time step
-        NOR.treatment(dict1)
+        NOR.treatment()
         # Get influent concentration
         c2 = Tank2.pollut_quality
         conc2.append(c2['P1'])

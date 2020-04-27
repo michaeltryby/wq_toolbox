@@ -1,6 +1,7 @@
 from pyswmm import Simulation, Nodes
 import numpy as np
 import matplotlib.pyplot as plt
+import water_quality.nodes
 
 # Single Tank, Constant Inflow, Constant Effluent
 
@@ -8,18 +9,18 @@ import matplotlib.pyplot as plt
 # Create simulation
 conc1 = []
 flow1 = [] 
+dict1 = {'Tank': {0: 2}}
 
 with Simulation("./tank_constantinflow_notreatment.inp") as sim:
+    EMC = EventMeanConc(sim)
     Tank = Nodes(sim)["Tank"]
-    # Set initial concentration
-    sim._model.setNodePollutant("Tank", 0, 2)
 
     # Step through the simulation    
     for step in sim:
+        # Set constant effluent concentration each time step
+        EMC.treatment(dict1)
         # Get newQual for Tank
         conc = Tank.pollut_quality
-        # Set constant effluent concentration each time step
-        sim._model.setNodePollutant("Tank", 0, 2)
         conc1.append(conc['P1'])
         # Get flow for Tank
         flow1.append(sim._model.getNodeResult("Tank", 0))
@@ -36,7 +37,6 @@ with Simulation("./tank_constantinflow_constanteffluent.inp") as sim:
     for step in sim:
         # Get newQual for Tank
         c0 = Tank.pollut_quality
-        print(c0)
         conc2.append(c0['P1'])
         # Get flow for Tank
         flow2.append(sim._model.getNodeResult("Tank", 0))
