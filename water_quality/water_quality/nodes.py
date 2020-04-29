@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-27 14:18:03
+# @Last Modified time: 2020-04-27 14:50:28
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -222,6 +222,22 @@ class CSTR:
         self.start_time = sim.start_time
         self.last_timestep = self.start_time 
 
+    def tank(self, t, y):
+        # Read from user dictionary
+        for node in node_dict:
+            for pollutant in node_dict[node]:
+                Cin = sim._model.getNodeCin(node, pollutant)
+                Qin = sim._model.getNodeResult(node, 0)
+                Qout = sim._model.getNodeResult(node, 1)
+                V = sim._model.getNodeResult(node, 3)
+                k = Node_dict[node][pollutant][0]
+                # Setup variables for ODE solver
+                C = y[0]
+                n = len(y)
+                dCdt = np.zeros((n,1))
+                dCdt[0] = (Qin*Cin - Qout*C)/V - k*C
+                return dCdt
+
     def treatment(self):
         # Get current time
         current_step = sim.current_time
@@ -233,11 +249,26 @@ class CSTR:
         # Read from user dictionary
         for node in node_dict:
             for pollutant in node_dict[node]:
-                Cin = sim._model.getNodeCin(node, pollutant)
-                Qin = sim._model.getNodeResult(node, 0)
-                Qout = sim._model.getNodeResult(node, 1)
-                V = sim._model.getNodeResult(node, 3)
-                k = Node_dict[node][pollutant][0]
-                dCdt = (Qin*Cin - Qout*C)/V - k*C
+                r = integrate.ode(tank).set_integrator('vode', method='bdf')
+                t_start = 0.0
+                t_final = dt
+                num_steps = np.floor((t_final - t_start)/dt)+1
+
+                C_t_zero = Cin
+                r.set_initial_value([C_t_zero], t_start)
+
+                t = np.zeros((num_steps, 1))
+                C = np.zeros((num_steps, 1))
+                t[0] = t_start
+                C[0] = C_t_zero
+
+                k = 1
+                while r.successful() and k < num_steps:
+                    r.integrate(r.t + dt)
+                    t[k] = r.t
+                    C[k] = r.y[0]
+                    k += 1
+
+            sim._model.setNodePollutant(node, pollutant, Cnew)
 
 ########################################################################
