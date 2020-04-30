@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-27 14:50:28
+# @Last Modified time: 2020-04-30 16:50:37
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -13,7 +13,7 @@ class Treatment:
     
     def __init__(self, sim, node_dict):
         self.sim = sim
-        self.node_dict = node_dict
+        self.asset_dict = node_dict
         self.start_time = sim.start_time
         self.last_timestep = self.start_time 
 
@@ -63,12 +63,10 @@ class Treatment:
             for pollutant in self.node_dict[node]:
                 #Get parameters
                 Cin = sim._model.getNodeCin(node, pollutant)
-                C = sim._model.getNodePollutant(node, pollutant)
                 R1 = self.node_dict[node][pollutant][0]
                 R2 = self.node_dict[node][pollutant][1]
                 # Calculate new concentration
                 Cnew = (1-R1*R2)*Cin
-                Cnew = min(Cin, C)
                 # Set new concentration
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
@@ -95,6 +93,7 @@ class Treatment:
                 # Set new concentration
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
+
     def NthOrderReaction(self):
         # NTH ORDER REACTION KINETICS
         """
@@ -119,6 +118,7 @@ class Treatment:
                 Cnew = C - (k*(C**n)*dt)
                 # Set concentration each time step
                 sim._model.setNodePollutant(node, pollutant, Cnew)
+
 
     def kCModel(self):
         # K-C_STAR MODEL
@@ -146,6 +146,7 @@ class Treatment:
                 # Set new concentration
                 sim._model.setNodePollutant(node, pollutant, Cnew) 
 
+
     def GravitySettling(self):
         # GRAVITY SETTLING
         """
@@ -159,6 +160,7 @@ class Treatment:
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
         self.last_timestep = current_step
+        
         # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
@@ -174,6 +176,7 @@ class Treatment:
                     Cnew = np.heaviside((0.1-Qin),0)*C_star+(C-C_star)+(1-np.heaviside((0.1-Qin),0))*C
                 # Set new concentration
                 sim._model.setNodePollutant(node, pollutant, Cnew)
+
 
     def CSTR(self):
         # CSTR
@@ -230,5 +233,39 @@ class Treatment:
                         k += 1
 
                 sim._model.setNodePollutant(node, pollutant, Cnew)
+    
 
-########################################################################
+    def SedimentationResuspension(self):
+        # SEDIMENTATION & RESUSPENSION 
+        """
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [v_s, a, b], pindex2: [v_s, a, b]},
+                'SWMM_Node_ID2': {pindex1: [v_s, a, b], pindex2: [v_s, a, b]}}
+        """
+        # Get current time
+        current_step = sim.current_time
+        # Calculate model dt in seconds
+        dt = (current_step - self.last_timestep).total_seconds()
+        # Updating reference step
+        self.last_timestep = current_step
+
+        # Read from user dictionary
+        for node in self.node_dict:
+            for pollutant in self.node_dict[node]:
+                Qin = sim._model.getNodeResult(node,0)
+                Cin = sim._model.getNodeCin(node,pollutant)
+                depth = sim._model.getNodeResult(node,5)
+                v_s = self.node_dict[node][pollutant][0]
+                a = self.node_dict[node][pollutant][1]
+                b = self.node_dict[node][pollutant][2]
+                # Calculate removal
+                if depth != 0.0 and Qin != 0.0:
+                    R = 1 - np.exp(-v_s*dt/depth)-np.exp(-a*b/Qin)
+                else:
+                    R = 0
+                # Calculate new concentration
+                Cnew = (1-R)*Cin
+                # Set new concentration
+                sim._model.setNodePollutant(node, pollutant, Cnew)
+
+                
