@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-20 15:01:08
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-29 09:32:10
+# @Last Modified time: 2020-04-29 15:35:56
 
 """
 # METHOD 1 
@@ -100,15 +100,21 @@ def CSTR(t, C, Qin, Cin, Qout, V, k):
 
 solver = ode(CSTR)
 C = np.zeros(1800)
+dt=1
 
 for i in range(0,1799):
     solver.set_f_params(Qin[i],Cin[i],Qout[i],V[i],k)
+    solver.set_initial_value(C[i], i)
+    C[i]=solver.integrate(i+dt)
+
+    """
     if i == 0:
         solver.set_initial_value(0.0, 0.0)
         C[i]=solver.integrate(i)
     else: 
         solver.set_initial_value(C[i], i)
-        C[i]=solver.integrate(i+1)
+        C[i]=solver.integrate(i+dt)
+    """
 
 # Plot results
 plt.subplot(311)

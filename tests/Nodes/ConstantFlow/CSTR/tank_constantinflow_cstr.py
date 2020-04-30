@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-04-27 14:20:21
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-29 09:12:02
+# @Last Modified time: 2020-04-29 15:39:20
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -34,6 +34,9 @@ with Simulation("./tank_constantinflow_notreatment.inp") as sim:
     last_timestep = sim.start_time
     k = 0.2
     x = 1
+    T = (sim.end_time-sim.start_time).total_seconds()
+    C = np.zeros(int(T))
+    solver = ode(CSTR)
 
     # Step through the simulation    
     for index,step in enumerate(sim):
@@ -55,12 +58,14 @@ with Simulation("./tank_constantinflow_notreatment.inp") as sim:
         Cin = sim._model.getNodeCin('Tank',0)
         Qout = sim._model.getNodeResult('Tank',1)
         V = sim._model.getNodeResult('Tank',3)
-        T = (sim.end_time-sim.start_time).total_seconds()
-        C = np.zeros(int(T))
-        solver = ode(CSTR)
         solver.set_f_params(Qin,Cin,Qout,V,k,x)
         t = (sim.current_time-sim.start_time).total_seconds()
+        
+        #Solve ODE
+        solver.set_initial_value(C[index],t)
+        C[index]=solver.integrate(t+dt)
 
+        """
         if index == 1:
             # Solve ODE
             solver.set_initial_value(0.0, 0.0)
@@ -69,6 +74,7 @@ with Simulation("./tank_constantinflow_notreatment.inp") as sim:
             # Solve ODE
             solver.set_initial_value(C[index],t)
             C[index]=solver.integrate(t+dt)
+        """
 
         # Set new concentration
         sim._model.setNodePollutant('Tank', 0, C[index])
