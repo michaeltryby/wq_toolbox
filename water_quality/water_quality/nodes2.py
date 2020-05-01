@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-01 10:23:47
+# @Last Modified time: 2020-05-01 11:17:13
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -227,29 +227,18 @@ class Node_Treatment:
         Therefore, an ODE solver is used to solve for cocentration.s
         
         Dictionary format: 
-        dict = {'SWMM_Node_ID1': {pindex1: [k, n], pindex2: [k, n]},
-                'SWMM_Node_ID2': {pindex1: [k, n], pindex2: [k, n]}}
+        dict = {'SWMM_Node_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
+                'SWMM_Node_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
         
         k   = reaction rate constant (SI: m/hr, US: ft/hr) ??
         n   = reaction order (first order, second order, etc.) (unitless)
+        c0  = intital concentration inside reactor (SI or US: mg/L)
         """
-        def tank(self, t, y):
-            # Read from user dictionary
-            for node in node_dict:
-                for pollutant in node_dict[node]:
-                    Cin = sim._model.getNodeCin(node, pollutant)
-                    Qin = sim._model.getNodeResult(node, 0)
-                    Qout = sim._model.getNodeResult(node, 1)
-                    V = sim._model.getNodeResult(node, 3)
-                    k = Node_dict[node][pollutant][0]
-                    # Setup variables for ODE solver
-                    C = y[0]
-                    r = len(y)
-                    dCdt = np.zeros((r,1))
-                    dCdt[0] = (Qin*Cin - Qout*C)/V - k*C**n
-                    return dCdt
+        def tank(t, Qin, Cin, Qout, V, k, n):
+            dCdt = (Qin*Cin - Qout*C)/V - k*C**n
+            return dCdt
 
-        def treatment(self):
+        def solver(self):
             # Get current time
             current_step = sim.current_time
             # Calculate model dt in seconds
@@ -260,25 +249,17 @@ class Node_Treatment:
             # Read from user dictionary
             for node in node_dict:
                 for pollutant in node_dict[node]:
-                    r = integrate.ode(tank).set_integrator('vode', method='bdf')
-                    t_start = 0.0
-                    t_final = dt
-                    num_steps = np.floor((t_final - t_start)/dt)+1
-
-                    C_t_zero = Cin
-                    r.set_initial_value([C_t_zero], t_start)
-
-                    t = np.zeros((num_steps, 1))
-                    C = np.zeros((num_steps, 1))
-                    t[0] = t_start
-                    C[0] = C_t_zero
-
-                    k = 1
-                    while r.successful() and k < num_steps:
-                        r.integrate(r.t + dt)
-                        t[k] = r.t
-                        C[k] = r.y[0]
-                        k += 1
+                    if index == 0:
+                        c0 = node_dict[node][pollutant][2]
+                        solver = ode(tank)
+                        solver.set_f_params(Qin[0],Cin[0],Qout[0],V[0],k, n)
+                        solver.set_initial_value(c0, 0,0)
+                        solver.integrate(solver.t+dt)
+                    else:
+                        r.set_initial_value(r.y, r.t)
+                        r.set_f_params(Qin[i],Cin[i],Qout[i],V[i],k)
+                        solver.integrate(solver.t+dt)
+                        print(r.t, r.y)
 
                 sim._model.setNodePollutant(node, pollutant, Cnew)
     
