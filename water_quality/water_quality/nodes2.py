@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-01 11:17:13
+# @Last Modified time: 2020-05-02 13:21:45
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -13,7 +13,7 @@ class Node_Treatment:
     
     def __init__(self, sim, node_dict):
         self.sim = sim
-        self.asset_dict = node_dict
+        self.node_dict = node_dict
         self.start_time = sim.start_time
         self.last_timestep = self.start_time 
 
@@ -140,7 +140,7 @@ class Node_Treatment:
                 # Get parameters
                 k = self.node_dict[node][pollutant][0]
                 n = self.node_dict[node][pollutant][1]
-                C = sim._model.getNodePollutant(node, pollutant)
+                C = sim._model.getNodeC2(node, pollutant)
                 # Calculate treatment
                 Cnew = C - (k*(C**n)*dt)
                 # Set concentration each time step
@@ -207,7 +207,7 @@ class Node_Treatment:
                 Qin = sim._model.getNodeResult(node,0)
                 k = self.node_dict[node][pollutant][0]
                 C_s = self.node_dict[node][pollutant][1]
-                C = sim._model.getNodePollutant(node,pollutant)
+                C = sim._model.getNodeC2(node,pollutant)
                 d = sim._model.getNodeResult(node,5)
                 if d != 0.0:
                     # Calculate new concentration
@@ -292,6 +292,7 @@ class Node_Treatment:
             for pollutant in self.node_dict[node]:
                 Qin = sim._model.getNodeResult(node,0)
                 Cin = sim._model.getNodeCin(node,pollutant)
+                C = sim._model.getNodeC2(node,pollutant)
                 d = sim._model.getNodeResult(node,5)
                 v_s = self.node_dict[node][pollutant][0]
                 a = self.node_dict[node][pollutant][1]
@@ -303,6 +304,7 @@ class Node_Treatment:
                     R = 0
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
+                Cnew = min(Cnew,C)
                 # Set new concentration
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 

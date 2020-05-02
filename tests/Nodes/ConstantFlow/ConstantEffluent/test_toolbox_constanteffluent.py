@@ -5,19 +5,45 @@ import matplotlib.pyplot as plt
 # Single Tank, Constant Inflow, Constant Effluent
 
 # PySWMM Toolbox
+class Node_Treatment:
+    
+    def __init__(self, sim, node_dict):
+        self.sim = sim
+        self.node_dict = node_dict
+        self.start_time = sim.start_time
+        self.last_timestep = self.start_time 
+
+
+    def EventMeanConc(self):
+        """
+        Event Mean Concentration Treatment (SWMM Water Quality Manual, 2016)
+        Treatment results in a constant concentration.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: C, pindex2: C},
+                'SWMM_Node_ID2': {pindex1: C, pindex2: C}}
+        
+        C = constant treatment concentration for each pollutant (SI or US: mg/L)
+        """
+        # Read from user dictionary
+        for node in self.node_dict:
+            for pollutant in self.node_dict[node]:
+                # Set concentration
+                sim._model.setNodePollutant(node, pollutant, self.node_dict[node][pollutant])
+
 # Create simulation
 conc1 = []
 flow1 = [] 
 dict1 = {'Tank': {0: 2}}
 
 with Simulation("./tank_constantinflow_notreatment.inp") as sim:
-    EMC = EventMeanConc(sim, dict1)
+    NT = NodeTreatment(sim, dict1)
     Tank = Nodes(sim)["Tank"]
 
     # Step through the simulation    
     for step in sim:
         # Set constant effluent concentration each time step
-        EMC.treatment()
+        NT.EventMeanConc()
         # Get newQual for Tank
         conc = Tank.pollut_quality
         conc1.append(conc['P1'])

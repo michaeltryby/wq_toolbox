@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-27 11:27:39
+# @Last Modified time: 2020-05-02 11:58:54
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -37,7 +37,7 @@ class GravitySettling:
                 Qin = sim._model.getNodeResult(node, 0)
                 k = self.node_dict[node][pollutant][0]
                 C_star = self.node_dict[node][pollutant][1]
-                C = sim._model.getNodePollutant(node,pollutant)
+                C = sim._model.getNodeC2(node,pollutant)
                 depth = sim._model.getNodeResult(node, 5)
                 if depth != 0:
                     # Calculate new concentration
