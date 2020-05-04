@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-02 13:21:45
+# @Last Modified time: 2020-05-04 09:58:31
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -29,7 +29,6 @@ class Node_Treatment:
         
         C = constant treatment concentration for each pollutant (SI or US: mg/L)
         """
-        # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Set concentration
@@ -47,7 +46,6 @@ class Node_Treatment:
         
         R = pollutant removal fraction (unitless)
         """
-        # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 #Get parameters
@@ -72,7 +70,6 @@ class Node_Treatment:
         R1 = pollutant removal fraction (unitless) 
         R2 = pollutant removal fraction for other pollutant (unitless)
         """
-        # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 #Get parameters
@@ -99,7 +96,6 @@ class Node_Treatment:
         BC  = boundary concentration that determines removal rate (SI or US: mg/L)
         R_u = upper removal rate (unitless)
         """
-        # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Get Cin for each pollutant/node
@@ -160,7 +156,6 @@ class Node_Treatment:
         k   = reaction rate constant (SI: m/hr, US: ft/hr)
         C_s = constant residual concentration that always remains (SI or US: mg/L)
         """
-        # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Get Cin for each pollutant/node
@@ -193,7 +188,6 @@ class Node_Treatment:
         k   = reaction rate constant (SI: m/hr, US: ft/hr)
         C_s = constant residual concentration that always remains (SI or US: mg/L)
         """
-
         # Get current time
         current_step = sim.current_time
         # Calculate model dt in seconds
@@ -201,7 +195,6 @@ class Node_Treatment:
         # Updating reference step
         self.last_timestep = current_step
         
-        # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 Qin = sim._model.getNodeResult(node,0)
@@ -246,22 +239,29 @@ class Node_Treatment:
             # Updating reference step
             last_timestep = current_step
 
-            # Read from user dictionary
+            # Get parameters
+            Qin = sim._model.getNodeResult(node,pollutant)
+            Cin = sim._model.getNodeCin(node,pollutant)
+            Qout = sim._model.getNodeResult(node,1)
+            V = sim._model.getNodeResult(node,3)
+            k = node_dict[node][pollutant][0]
+            n = node_dict[node][pollutant][1]
+            c0 = node_dict[node][pollutant][2]
+
+            # Setup solver
+            solver = ode(tank)
+            solver.set_f_params(Qin,Cin,Qout,V,k,n)
+
             for node in node_dict:
                 for pollutant in node_dict[node]:
                     if index == 0:
-                        c0 = node_dict[node][pollutant][2]
-                        solver = ode(tank)
-                        solver.set_f_params(Qin[0],Cin[0],Qout[0],V[0],k, n)
-                        solver.set_initial_value(c0, 0,0)
+                        solver.set_initial_value(c0, 0.0)
                         solver.integrate(solver.t+dt)
                     else:
-                        r.set_initial_value(r.y, r.t)
-                        r.set_f_params(Qin[i],Cin[i],Qout[i],V[i],k)
+                        solver.set_initial_value(solver.y, solver.t)
                         solver.integrate(solver.t+dt)
-                        print(r.t, r.y)
-
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                    # Set new concentration
+                    sim._model.setNodePollutant(node, pollutant, solver.y[0])
     
 
     def SedimentationResuspension(self):
@@ -304,7 +304,6 @@ class Node_Treatment:
                     R = 0
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
-                Cnew = min(Cnew,C)
                 # Set new concentration
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
