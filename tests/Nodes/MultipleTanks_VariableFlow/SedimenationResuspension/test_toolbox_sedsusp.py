@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-02 13:36:05
+# @Last Modified time: 2020-05-04 09:14:11
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -59,7 +59,6 @@ class Node_Treatment:
                     R = 0
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
-                #Cnew = min(Cnew,C)
                 # Set new concentration
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
