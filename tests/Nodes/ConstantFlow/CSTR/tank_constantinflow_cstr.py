@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-04-27 14:20:21
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-04 14:33:24
+# @Last Modified time: 2020-05-04 14:44:36
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -16,12 +16,12 @@ conc1 = []
 
 def tank(t, C, Qin, Cin, Qout, V, k, n): 
     # CSTR differential equation
-    dCdt = (Qin*Cin - Qout*C)/V - k*C**n
+    dCdt = (Qin*Cin - Qout*C)/V + k*C**n
     print(dCdt)
     return dCdt
 
 with Simulation("./tank_constantinflow_notreatment.inp") as sim:
-    k = 0.2
+    k = - 0.2
     n = 1
     c0 = 0.0
     solver = ode(tank)
@@ -84,10 +84,10 @@ class Node_Treatment:
         c0  = intital concentration inside reactor (SI or US: mg/L)
         """
         def tank(t, C, Qin, Cin, Qout, V, k, n):
-            dCdt = (Qin*Cin - Qout*C)/V - k*C**n
+            dCdt = (Qin*Cin - Qout*C)/V + k*C**n
             return dCdt
 
-        def treatment(node_dict, last_timestep):
+        def treatment(node_dict, sim, last_timestep):
             # Get current time
             current_step = sim.current_time
             # Calculate model dt in seconds
@@ -101,7 +101,7 @@ class Node_Treatment:
             for node in node_dict:
                 for pollutant in node_dict[node]:
                     # Get parameters
-                    Qin = sim._model.getNodeResult(node,pollutant)
+                    Qin = sim._model.getNodeResult(node,0)
                     Cin = sim._model.getNodeCin(node,pollutant)
                     Qout = sim._model.getNodeResult(node,1)
                     V = sim._model.getNodeResult(node,3)
@@ -118,10 +118,10 @@ class Node_Treatment:
                         solver.integrate(solver.t+dt)
                     # Set new concentration
                     sim._model.setNodePollutant(node, pollutant, solver.y[0])
-        treatment(self.node_dict, self.last_timestep)
+        treatment(self.node_dict, self.sim, self.last_timestep)
 
 conc2 = []
-dict1 = {'Tank': {0: [0.2, 1.0, 0.0]}}
+dict1 = {'Tank': {0: [-0.2, 1.0, 0.0]}}
 
 with Simulation("./tank_constantinflow_notreatment.inp") as sim:
     Tank = Nodes(sim)["Tank"]
