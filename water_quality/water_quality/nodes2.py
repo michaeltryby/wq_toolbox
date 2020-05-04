@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-04 09:58:31
+# @Last Modified time: 2020-05-04 14:40:56
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -223,12 +223,12 @@ class Node_Treatment:
         dict = {'SWMM_Node_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
                 'SWMM_Node_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
         
-        k   = reaction rate constant (SI: m/hr, US: ft/hr) ??
+        k   = reaction rate constant (SI or US: 1/s)
         n   = reaction order (first order, second order, etc.) (unitless)
         c0  = intital concentration inside reactor (SI or US: mg/L)
         """
         def tank(t, Qin, Cin, Qout, V, k, n):
-            dCdt = (Qin*Cin - Qout*C)/V - k*C**n
+            dCdt = (Qin*Cin - Qout*C)/V + k*C**n
             return dCdt
 
         def solver(self):
@@ -240,7 +240,7 @@ class Node_Treatment:
             last_timestep = current_step
 
             # Get parameters
-            Qin = sim._model.getNodeResult(node,pollutant)
+            Qin = sim._model.getNodeResult(node,0)
             Cin = sim._model.getNodeCin(node,pollutant)
             Qout = sim._model.getNodeResult(node,1)
             V = sim._model.getNodeResult(node,3)
