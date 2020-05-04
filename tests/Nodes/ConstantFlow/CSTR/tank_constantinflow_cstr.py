@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-04-27 14:20:21
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-04 10:43:57
+# @Last Modified time: 2020-05-04 14:33:24
 
 from pyswmm import Simulation, Nodes
 import numpy as np
@@ -79,7 +79,7 @@ class Node_Treatment:
         dict = {'SWMM_Node_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
                 'SWMM_Node_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
         
-        k   = reaction rate constant (SI: m/hr, US: ft/hr) ??
+        k   = reaction rate constant (SI or US: 1/s)
         n   = reaction order (first order, second order, etc.) (unitless)
         c0  = intital concentration inside reactor (SI or US: mg/L)
         """
