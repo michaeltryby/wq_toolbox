@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-02 13:23:00
+# @Last Modified time: 2020-05-04 08:15:59
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -13,7 +13,7 @@ class Link_Treatment:
     
     def __init__(self, sim, link_dict):
         self.sim = sim
-        self.asset_dict = link_dict
+        self.link_dict = link_dict
         self.start_time = sim.start_time
         self.last_timestep = self.start_time 
 
@@ -336,13 +336,13 @@ class Link_Treatment:
         discharge relationships and sediment transport in alluvial streams.
 
         Dictionary format: 
-        dict = {'SWMM_Link_ID1': {pindex1: [w, So, d50], pindex2: [w, So, d50]},
-                'SWMM_Link_ID2': {pindex1: [w, So, d50], pindex2: [w, So, d50]}}
+        dict = {'SWMM_Link_ID1': {pindex1: [w, So, Ss, d50], pindex2: [w, So, Ss, d50]},
+                'SWMM_Link_ID2': {pindex1: [w, So, Ss, d50], pindex2: [w, So, Ss, d50]}}
         
         w   = channel width (SI: m, US: ft)
         So  = bottom slope (SI: m/m, US: ft/ft)
         d50 = mean sediment particle diameter (SI or US: mm)
-        Ss  = specific gravity of sediment (for soil usually beewteen 2.65-2.80)
+        Ss  = specific gravity of sediment (for soil usually between 2.65-2.80)
         d   = depth (SI: m, US: ft)
         qs = sediment discharge per unit width (SI: kg/m-s, US: lb/ft-s)
         Qs = sediment discharge (SI: kg/s, US: lb/s)
@@ -362,28 +362,39 @@ class Link_Treatment:
                 A = sim._model.getLinkResult(link,3)
                 d = sim._model.getLinkResult(link,1)
                 v = Qin/A
-                Ss = 2.68
                 w = self.link_dict[link][pollutant][0]
                 So = self.link_dict[link][pollutant][1]
-                d50 = self.link_dict[link][pollutant][2]
+                Ss = self.link_dict[link][pollutant][2]
+                d50 = self.link_dict[link][pollutant][3]
                 
                 #Calculate erosion
-                if sim._model.getSimulationUnit(0) == 'US':
+                if sim._model.getSimUnit(0) == "US":
                     g = 32.2    # ft/s^2
                     yw = 62.4   # lb/ft^3
-                    theta = (d*So/((Ss-1)*d50))*0.00328 # unitless
-                    f = (2*g*So*d)/v**2     # unitless
-                    qs = 0.1*(1/f)*theta**(5/2)*yw*((Ss-1)*g*(d50*0.00328)**3)**(1/2) # lb/ft-s
-                    Qs = w*Qs   # lb/s
-                    Cnew = (Qs/Qin)*(453592/28.3168) + Cin   # mg/L
+                    theta = (d*So/((Ss-1)*d50))*(1/0.00328) # unitless
+                    if v != 0.0:
+                        f = (2*g*So*d)/v**2     # unitless
+                        qs = 0.1*(1/f)*theta**(5/2)*yw*((Ss-1)*g*(d50*0.00328)**3)**(1/2) # lb/ft-s
+                        Qs = w*qs   # lb/s
+                    else:
+                        Qs = 0.0
+                    if Qin !=0.0:
+                        Cnew = (Qs/Qin)*(453592/28.3168) + Cin   # mg/L
+                        # Set new concentration
+                        sim._model.setLinkPollutant(link, pollutant, Cnew)
+
                 else:
                     g = 9.81    # m/s^2
                     yw = 1000   # kg/m^3
-                    theta = (d*So/((Ss-1)*d50))*0.001   # unitless
-                    f = (2*g*So*d)/v**2     # unitless
-                    qs = 0.1*(1/f)*theta**(5/2)*yw*((Ss-1)*g*(d50*0.001)**3)**(1/2) # kg/m-s
-                    Qs = w*qs   # kg/s
-                    Cnew = (Qs/Qin)*1000 + Cin  # mg/L
-                # Set new concentration
-                sim._model.setLinkPollutant(link, pollutant, Cnew)
+                    theta = (d*So/((Ss-1)*d50))*(1/0.001)   # unitless
+                    if v != 0.0:
+                        f = (2*g*So*d)/v**2     # unitless
+                        qs = 0.1*(1/f)*theta**(5/2)*yw*((Ss-1)*g*(d50*0.001)**3)**(1/2) # kg/m-s
+                        Qs = w*qs   # kg/s
+                    else:
+                        Qs = 0.0
+                    if Qin != 0.0:
+                        Cnew = ((Qs/Qin)*1000) + Cin  # mg/L
+                        # Set new concentration
+                        sim._model.setLinkPollutant(link, pollutant, Cnew)v
 
