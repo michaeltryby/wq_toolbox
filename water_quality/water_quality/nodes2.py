@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-04 14:40:56
+# @Last Modified time: 2020-05-05 08:32:29
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -15,7 +15,8 @@ class Node_Treatment:
         self.sim = sim
         self.node_dict = node_dict
         self.start_time = sim.start_time
-        self.last_timestep = self.start_time 
+        self.last_timestep = self.start_time
+        self.solver = solver 
 
 
     def EventMeanConc(self):
@@ -32,7 +33,7 @@ class Node_Treatment:
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Set concentration
-                sim._model.setNodePollutant(node, pollutant, self.node_dict[node][pollutant])
+                self.sim._model.setNodePollutant(node, pollutant, self.node_dict[node][pollutant])
 
 
     def ConstantRemoval(self):
@@ -49,7 +50,7 @@ class Node_Treatment:
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 #Get parameters
-                Cin = sim._model.getNodeCin(node, pollutant)
+                Cin = self.sim._model.getNodeCin(node, pollutant)
                 R = self.node_dict[node][pollutant]
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
@@ -73,13 +74,13 @@ class Node_Treatment:
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 #Get parameters
-                Cin = sim._model.getNodeCin(node, pollutant)
+                Cin = self.sim._model.getNodeCin(node, pollutant)
                 R1 = self.node_dict[node][pollutant][0]
                 R2 = self.node_dict[node][pollutant][1]
                 # Calculate new concentration
                 Cnew = (1-R1*R2)*Cin
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
 
     def ConcDependRemoval(self):
@@ -99,7 +100,7 @@ class Node_Treatment:
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Get Cin for each pollutant/node
-                Cin = sim._model.getNodeCin(node, pollutant)
+                Cin = self.sim._model.getNodeCin(node, pollutant)
                 R_l = self.node_dict[node][pollutant][0]
                 BC = self.node_dict[node][pollutant][1]
                 R_u = self.node_dict[node][pollutant][2]
@@ -108,7 +109,7 @@ class Node_Treatment:
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
 
     def NthOrderReaction(self):
@@ -125,7 +126,7 @@ class Node_Treatment:
         n   = reaction order (first order, second order, etc.) (unitless)
         """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -136,11 +137,11 @@ class Node_Treatment:
                 # Get parameters
                 k = self.node_dict[node][pollutant][0]
                 n = self.node_dict[node][pollutant][1]
-                C = sim._model.getNodeC2(node, pollutant)
+                C = self.sim._model.getNodeC2(node, pollutant)
                 # Calculate treatment
                 Cnew = C - (k*(C**n)*dt)
                 # Set concentration each time step
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
 
     def kCModel(self):
@@ -159,11 +160,11 @@ class Node_Treatment:
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Get Cin for each pollutant/node
-                Cin = sim._model.getNodeCin(node, pollutant)
-                d = sim._model.getNodeResult(node,5)
+                Cin = self.sim._model.getNodeCin(node, pollutant)
+                d = self.sim._model.getNodeResult(node,5)
                 k = self.node_dict[node][pollutant][0]
                 C_s = self.node_dict[node][pollutant][1]
-                hrt = sim._model.getNodeHRT(node)
+                hrt = self.sim._model.getNodeHRT(node)
                 # Calculate removal
                 if d != 0.0 and Cin != 0.0:
                     R = np.heaviside((Cin-C_s),0)*((1-np.exp(-k*hrt/d))*(1-C_s/Cin))
@@ -172,7 +173,7 @@ class Node_Treatment:
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew) 
+                self.sim._model.setNodePollutant(node, pollutant, Cnew) 
 
 
     def GravitySettling(self):
@@ -189,7 +190,7 @@ class Node_Treatment:
         C_s = constant residual concentration that always remains (SI or US: mg/L)
         """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -197,18 +198,18 @@ class Node_Treatment:
         
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
-                Qin = sim._model.getNodeResult(node,0)
+                Qin = self.sim._model.getNodeResult(node,0)
                 k = self.node_dict[node][pollutant][0]
                 C_s = self.node_dict[node][pollutant][1]
-                C = sim._model.getNodeC2(node,pollutant)
-                d = sim._model.getNodeResult(node,5)
+                C = self.sim._model.getNodeC2(node,pollutant)
+                d = self.sim._model.getNodeResult(node,5)
                 if d != 0.0:
                     # Calculate new concentration
                     Cnew = np.heaviside((0.1-Qin),0)*(C_s+(C-C_s)*np.exp(-k/d*dt/3600))+(1-np.heaviside((0.1-Qin),0))*C
                 else:
                     Cnew = np.heaviside((0.1-Qin),0)*C_s+(C-C_s)+(1-np.heaviside((0.1-Qin),0))*C
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
 
     def CSTR(self):
@@ -233,17 +234,17 @@ class Node_Treatment:
 
         def solver(self):
             # Get current time
-            current_step = sim.current_time
+            current_step = self.sim.current_time
             # Calculate model dt in seconds
             dt = (current_step - last_timestep).total_seconds()
             # Updating reference step
             last_timestep = current_step
 
             # Get parameters
-            Qin = sim._model.getNodeResult(node,0)
-            Cin = sim._model.getNodeCin(node,pollutant)
-            Qout = sim._model.getNodeResult(node,1)
-            V = sim._model.getNodeResult(node,3)
+            Qin = self.sim._model.getNodeResult(node,0)
+            Cin = self.sim._model.getNodeCin(node,pollutant)
+            Qout = self.sim._model.getNodeResult(node,1)
+            V = self.sim._model.getNodeResult(node,3)
             k = node_dict[node][pollutant][0]
             n = node_dict[node][pollutant][1]
             c0 = node_dict[node][pollutant][2]
@@ -261,7 +262,7 @@ class Node_Treatment:
                         solver.set_initial_value(solver.y, solver.t)
                         solver.integrate(solver.t+dt)
                     # Set new concentration
-                    sim._model.setNodePollutant(node, pollutant, solver.y[0])
+                    self.sim._model.setNodePollutant(node, pollutant, solver.y[0])
     
 
     def SedimentationResuspension(self):
@@ -281,7 +282,7 @@ class Node_Treatment:
               computed for each upstream inline storage asset
         """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -290,10 +291,10 @@ class Node_Treatment:
         # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
-                Qin = sim._model.getNodeResult(node,0)
-                Cin = sim._model.getNodeCin(node,pollutant)
-                C = sim._model.getNodeC2(node,pollutant)
-                d = sim._model.getNodeResult(node,5)
+                Qin = self.sim._model.getNodeResult(node,0)
+                Cin = self.sim._model.getNodeCin(node,pollutant)
+                C = self.sim._model.getNodeC2(node,pollutant)
+                d = self.sim._model.getNodeResult(node,5)
                 v_s = self.node_dict[node][pollutant][0]
                 a = self.node_dict[node][pollutant][1]
                 b = self.node_dict[node][pollutant][2]
@@ -305,5 +306,5 @@ class Node_Treatment:
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 

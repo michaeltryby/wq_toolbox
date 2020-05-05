@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-04 14:51:11
+# @Last Modified time: 2020-05-05 08:33:46
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -14,7 +14,7 @@ class Link_Treatment:
     def __init__(self, sim, link_dict):
         self.sim = sim
         self.link_dict = link_dict
-        self.start_time = sim.start_time
+        self.start_time = self.sim.start_time
         self.last_timestep = self.start_time 
 
 
@@ -33,7 +33,7 @@ class Link_Treatment:
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 # Set concentration
-                sim._model.setLinkPollutant(link, pollutant, self.link_dict[link][pollutant])
+                self.sim._model.setLinkPollutant(link, pollutant, self.link_dict[link][pollutant])
 
 
     def ConstantRemoval(self):
@@ -51,12 +51,12 @@ class Link_Treatment:
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 #Get parameters
-                Cin = sim._model.getLinkC2(link, pollutant)
+                Cin = self.sim._model.getLinkC2(link, pollutant)
                 R = self.link_dict[link][pollutant]
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration 
-                sim._model.setLinkPollutant(link, pollutant, Cnew)
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
 
     def CoRemoval(self):
@@ -76,13 +76,13 @@ class Link_Treatment:
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 #Get parameters
-                Cin = sim._model.getLinkC2(link, pollutant)
+                Cin = self.sim._model.getLinkC2(link, pollutant)
                 R1 = self.link_dict[link][pollutant][0]
                 R2 = self.link_dict[link][pollutant][1]
                 # Calculate new concentration
                 Cnew = (1-R1*R2)*Cin
                 # Set new concentration
-                sim._model.setLinkPollutant(link, pollutant, Cnew)
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
 
     def ConcDependRemoval(self): 
@@ -103,7 +103,7 @@ class Link_Treatment:
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 # Get Cin for each pollutant/link
-                Cin = sim._model.getLinkC2(link, pollutant)
+                Cin = self.sim._model.getLinkC2(link, pollutant)
                 R_l = self.link_dict[link][pollutant][0]
                 BC = self.link_dict[link][pollutant][1]
                 R_u = self.link_dict[link][pollutant][2]
@@ -112,7 +112,7 @@ class Link_Treatment:
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setLinkPollutant(link, pollutant, Cnew)
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
 
     def NthOrderReaction(self):
@@ -129,7 +129,7 @@ class Link_Treatment:
         n   = reaction order (first order, second order, etc.) (unitless)
         """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -140,11 +140,11 @@ class Link_Treatment:
                 # Get parameters
                 k = self.link_dict[link][pollutant][0]
                 n = self.link_dict[link][pollutant][1]
-                C = sim._model.getLinkC2(link, pollutant)
+                C = self.sim._model.getLinkC2(link, pollutant)
                 # Calculate treatment
                 Cnew = C - (k*(C**n)*dt)
                 # Set concentration each time step
-                sim._model.setLinkPollutant(link, pollutant, Cnew)
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
 
     def kCModel(self):
@@ -165,11 +165,11 @@ class Link_Treatment:
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 # Get Cin for each pollutant/link
-                Cin = sim._model.getLinkC2(link, pollutant)
-                d = sim._model.getLinkResult(link,1)
+                Cin = self.sim._model.getLinkC2(link, pollutant)
+                d = self.sim._model.getLinkResult(link,1)
                 k = self.link_dict[link][pollutant][0]
                 C_s = self.link_dict[link][pollutant][1]
-                hrt = sim._model.getLinkHRT(link)
+                hrt = self.sim._model.getLinkHRT(link)
                 # Calculate removal
                 if d != 0.0 and Cin != 0.0:
                     R = np.heaviside((Cin-C_s),0)*((1-np.exp(-k*hrt/d))*(1-C_s/Cin))
@@ -178,7 +178,7 @@ class Link_Treatment:
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setLinkPollutant(link, pollutant, Cnew) 
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew) 
 
 
     def GravitySettling(self):
@@ -195,7 +195,7 @@ class Link_Treatment:
         C_s = constant residual concentration that always remains (SI or US: mg/L)
         """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -204,18 +204,18 @@ class Link_Treatment:
         # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
-                Qin = sim._model.getLinkResult(link,0)
+                Qin = self.sim._model.getLinkResult(link,0)
                 k = self.link_dict[link][pollutant][0]
                 C_s = self.link_dict[link][pollutant][1]
-                C = sim._model.getLinkC2(link,pollutant)
-                d = sim._model.getLinkResult(link,1)
+                C = self.sim._model.getLinkC2(link,pollutant)
+                d = self.sim._model.getLinkResult(link,1)
                 if d != 0.0:
                     # Calculate new concentration
                     Cnew = np.heaviside((0.1-Qin),0)*(C_s+(C-C_s)*np.exp(-k/d*dt/3600))+(1-np.heaviside((0.1-Qin),0))*C
                 else:
                     Cnew = np.heaviside((0.1-Qin),0)*C_s+(C-C_s)+(1-np.heaviside((0.1-Qin),0))*C
                 # Set new concentration
-                sim._model.setLinkPollutant(link, pollutant, Cnew)
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
 
     def CSTR(self):
@@ -240,16 +240,16 @@ class Link_Treatment:
 
         def solver(self):
             # Get current time
-            current_step = sim.current_time
+            current_step = self.sim.current_time
             # Calculate model dt in seconds
             dt = (current_step - last_timestep).total_seconds()
             # Updating reference step
             last_timestep = current_step
 
             # Get parameters
-            Q = sim._model.getNodeResult(link,0)
-            Cin = sim._model.getNodeCin(link,pollutant)
-            V = sim._model.getNodeResult(link,2)
+            Q = self.sim._model.getNodeResult(link,0)
+            Cin = self.sim._model.getNodeCin(link,pollutant)
+            V = self.sim._model.getNodeResult(link,2)
             k = link_dict[link][pollutant][0]
             n = link_dict[link][pollutant][1]
             c0 = link_dict[link][pollutant][2]
@@ -267,7 +267,7 @@ class Link_Treatment:
                         solver.set_initial_value(solver.y, solver.t)
                         solver.integrate(solver.t+dt)
                     # Set new concentration
-                    sim._model.setNodePollutant(link, pollutant, solver.y[0])
+                    self.sim._model.setNodePollutant(link, pollutant, solver.y[0])
     
 
     def SedimentationResuspension(self):
@@ -287,7 +287,7 @@ class Link_Treatment:
               computed for each upstream inline storage asset
         """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -296,9 +296,9 @@ class Link_Treatment:
         # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
-                Qin = sim._model.getLinkResult(link,0)
-                Cin = sim._model.getLinkC2(link,pollutant)
-                d = sim._model.getLinkResult(link,1)
+                Qin = self.sim._model.getLinkResult(link,0)
+                Cin = self.sim._model.getLinkC2(link,pollutant)
+                d = self.sim._model.getLinkResult(link,1)
                 v_s = self.link_dict[link][pollutant][0]
                 a = self.link_dict[link][pollutant][1]
                 b = self.link_dict[link][pollutant][2]
@@ -311,7 +311,7 @@ class Link_Treatment:
                 Cnew = (1-R)*Cin
                 Cnew = min(Cin, Cnew)
                 # Set new concentration
-                sim._model.setLinkPollutant(link, pollutant, Cnew)
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
 
     def Erosion(self): 
@@ -333,7 +333,7 @@ class Link_Treatment:
         Qs = sediment discharge (SI: kg/s, US: lb/s)
         """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -342,10 +342,10 @@ class Link_Treatment:
         # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
-                Cin = sim._model.getLinkC2(link,pollutant)
-                Qin = sim._model.getLinkResult(link,0)
-                A = sim._model.getLinkResult(link,3)
-                d = sim._model.getLinkResult(link,1)
+                Cin = self.sim._model.getLinkC2(link,pollutant)
+                Qin = self.sim._model.getLinkResult(link,0)
+                A = self.sim._model.getLinkResult(link,3)
+                d = self.sim._model.getLinkResult(link,1)
                 v = Qin/A
                 w = self.link_dict[link][pollutant][0]
                 So = self.link_dict[link][pollutant][1]
@@ -353,7 +353,7 @@ class Link_Treatment:
                 d50 = self.link_dict[link][pollutant][3]
                 
                 #Calculate erosion
-                if sim._model.getSimUnit(0) == "US":
+                if self.sim._model.getSimUnit(0) == "US":
                     g = 32.2    # ft/s^2
                     yw = 62.4   # lb/ft^3
                     theta = (d*So/((Ss-1)*d50))*(1/0.00328) # unitless
@@ -366,7 +366,7 @@ class Link_Treatment:
                     if Qin !=0.0:
                         Cnew = (Qs/Qin)*(453592/28.3168) + Cin   # mg/L
                         # Set new concentration
-                        sim._model.setLinkPollutant(link, pollutant, Cnew)
+                        self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
                 else:
                     g = 9.81    # m/s^2
@@ -381,5 +381,5 @@ class Link_Treatment:
                     if Qin != 0.0:
                         Cnew = ((Qs/Qin)*1000) + Cin  # mg/L
                         # Set new concentration
-                        sim._model.setLinkPollutant(link, pollutant, Cnew)v
+                        self.sim._model.setLinkPollutant(link, pollutant, Cnew)v
 
