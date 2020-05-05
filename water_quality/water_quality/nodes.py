@@ -2,127 +2,131 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-04-27 14:50:28
+# @Last Modified time: 2020-05-05 11:04:31
 
 from pyswmm.simulation import Simulation
 import numpy as np
 from scipy.integrate import ode 
 
-########################################################################
-# Event Mean Concentration Treatment
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: conc1, pindex2: conc2},
-        'SWMM_Node_ID2': {pindex1: conc1, pindex2: conc2}}
-"""
-class EventMeanConc:
+
+class Node_Treatment:
+    
     def __init__(self, sim, node_dict):
         self.sim = sim
         self.node_dict = node_dict
+        self.start_time = sim.start_time
+        self.last_timestep = self.start_time
+        self.solver = ode(self.CSTR_tank)
 
-    def treatment(self):
-        # Read from user dictionary
+
+    def EventMeanConc(self):
+        """
+        Event Mean Concentration Treatment (SWMM Water Quality Manual, 2016)
+        Treatment results in a constant concentration.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: C, pindex2: C},
+                'SWMM_Node_ID2': {pindex1: C, pindex2: C}}
+        
+        C = constant treatment concentration for each pollutant (SI or US: mg/L)
+        """
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Set concentration
-                sim._model.setNodePollutant(node, pollutant, self.node_dict[node][pollutant])
+                self.sim._model.setNodePollutant(node, pollutant, self.node_dict[node][pollutant])
 
-########################################################################
-# CONSTANT REMOVAL TREATMENT
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: %R1, pindex2: %R2},
-        'SWMM_Node_ID2': {pindex1: %R1, pindex2: %R2}}
-"""
-class ConstantRemoval:
-    def __init__(self, sim, node_dict):
-        self.sim = sim
-        self.node_dict = node_dict
 
-    def treatment(self):
-        # Read from user dictionary
+    def ConstantRemoval(self):
+        """
+        CONSTANT REMOVAL TREATMENT (SWMM Water Quality Manual, 2016)
+        Treatment results in a constant percent removal.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: %R1, pindex2: %R2},
+                'SWMM_Node_ID2': {pindex1: %R1, pindex2: %R2}}
+        
+        R = pollutant removal fraction (unitless)
+        """
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 #Get parameters
-                Cin = sim._model.getNodeCin(node, pollutant)
+                Cin = self.sim._model.getNodeCin(node, pollutant)
                 R = self.node_dict[node][pollutant]
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration 
                 sim._model.setNodePollutant(node, pollutant, Cnew)
 
-########################################################################
-# CO-REMOVAL TREATMENT
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: [%R1, %R_otherpollutant], pindex2: [%R1, %R_otherpollutant]},
-        'SWMM_Node_ID2': {pindex1: [%R1, %R_otherpollutant], pindex2: [%R1, %R_otherpollutant]}}
-"""
-class CoRemoval:
-    def __init__(self, sim, node_dict):
-        self.sim = sim
-        self.node_dict = node_dict
 
-    def treatment(self):
-        # Read from user dictionary
+    def CoRemoval(self):
+        """
+        CO-REMOVAL TREATMENT (SWMM Water Quality Manual, 2016)
+        Removal of some pollutant is proportional to the removal of
+        some other pollutant.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [R1, R2], pindex2: [R1, R2]},
+                'SWMM_Node_ID2': {pindex1: [R1, R2], pindex2: [R1, R2]}}
+        
+        R1 = pollutant removal fraction (unitless) 
+        R2 = pollutant removal fraction for other pollutant (unitless)
+        """
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 #Get parameters
-                Cin = sim._model.getNodeCin(node, pollutant)
-                C = sim._model.getNodePollutant(node, pollutant)
+                Cin = self.sim._model.getNodeCin(node, pollutant)
                 R1 = self.node_dict[node][pollutant][0]
                 R2 = self.node_dict[node][pollutant][1]
                 # Calculate new concentration
                 Cnew = (1-R1*R2)*Cin
-                Cnew = min(Cin, C)
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
-########################################################################
-# CONCENTRATION-DEPENDENT REMOVAL
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: [%R_lower, boundary_conc, %R_upper], pindex2: [%R_lower, boundary_conc, %R_upper]},
-        'SWMM_Node_ID2': {pindex1: [%R_lower, boundary_conc, %R_upper], pindex2: [%R_lower, boundary_conc, %R_upper]}}
-"""
-class ConcDependRemoval:
-    def __init__(self, sim, node_dict):
-        self.sim = sim
-        self.node_dict = node_dict
 
-    def treatment(self):
-        # Read from user dictionary
+    def ConcDependRemoval(self):
+        """
+        CONCENTRATION-DEPENDENT REMOVAL (SWMM Water Quality Manual, 2016)
+        When higher pollutant removal efficiencies occur with higher 
+        influent concentrations.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [R_l, BC, R_u], pindex2: [R_l, BC, R_u]},
+                'SWMM_Node_ID2': {pindex1: [R_l, BC, R_u], pindex2: [R_l, BC, R_u]}}
+        
+        R_l = lower removal rate (unitless)
+        BC  = boundary concentration that determines removal rate (SI or US: mg/L)
+        R_u = upper removal rate (unitless)
+        """
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Get Cin for each pollutant/node
-                Cin = sim._model.getNodeCin(node, pollutant)
-                R_lower = self.node_dict[node][pollutant][0]
-                bound_C = self.node_dict[node][pollutant][1]
-                R_upper = self.node_dict[node][pollutant][2]
+                Cin = self.sim._model.getNodeCin(node, pollutant)
+                R_l = self.node_dict[node][pollutant][0]
+                BC = self.node_dict[node][pollutant][1]
+                R_u = self.node_dict[node][pollutant][2]
                 # Calculate removal
-                R = (1-np.heaviside((Cin-bound_C),0))*R_lower+np.heaviside((Cin-bound_C),0)*R_upper
+                R = (1-np.heaviside((Cin-BC),0))*R_l+np.heaviside((Cin-bound_C),0)*R_u
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
-########################################################################
-# NTH ORDER REACTION KINETICS
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: [k, n], pindex2: [k, n]},
-        'SWMM_Node_ID2': {pindex1: [k, n], pindex2: [k, n]}}
-"""
-class NthOrderReaction:
-    def __init__(self, sim, node_dict):
-        self.sim = sim
-        self.node_dict = node_dict
-        self.start_time = sim.start_time
-        self.last_timestep = self.start_time 
 
-    def treatment(self):
+    def NthOrderReaction(self):
+        """
+        NTH ORDER REACTION KINETICS (SWMM Water Quality Manual, 2016)
+        When treatment of pollutant X exhibits n-th order reaciton kinetics
+        where the instantaneous reaction rate is kC^n.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [k, n], pindex2: [k, n]},
+                'SWMM_Node_ID2': {pindex1: [k, n], pindex2: [k, n]}}
+        
+        k   = reaction rate constant (SI: m/hr, US: ft/hr)
+        n   = reaction order (first order, second order, etc.) (unitless)
+        """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
@@ -133,142 +137,192 @@ class NthOrderReaction:
                 # Get parameters
                 k = self.node_dict[node][pollutant][0]
                 n = self.node_dict[node][pollutant][1]
-                C = sim._model.getNodePollutant(node, pollutant)
+                C = self.sim._model.getNodeC2(node, pollutant)
                 # Calculate treatment
                 Cnew = C - (k*(C**n)*dt)
                 # Set concentration each time step
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
-########################################################################
-# K-C_STAR MODEL
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: [k, C_star], pindex2: [k, C_star]},
-        'SWMM_Node_ID2': {pindex1: [k, C_star], pindex2: [k, C_star]}}
-"""
-class kCModel:
-    def __init__(self, sim, node_dict):
-        self.sim = sim
-        self.node_dict = node_dict
 
-    def treatment(self):
-        # Read from user dictionary
+    def kCModel(self):
+        """
+        K-C_STAR MODEL (SWMM Water Quality Manual, 2016)
+        The first-order model with bachground concnetration made popular by 
+        Kadlec and Knight (1996) for long-term treatment performance of wetlands.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [k, C_s], pindex2: [k, C_s]},
+                'SWMM_Node_ID2': {pindex1: [k, C_s], pindex2: [k, C_s]}}
+        
+        k   = reaction rate constant (SI: m/hr, US: ft/hr)
+        C_s = constant residual concentration that always remains (SI or US: mg/L)
+        """
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
                 # Get Cin for each pollutant/node
-                Cin = sim._model.getNodeCin(node, pollutant)
-                depth = sim._model.getNodeResult(node,5)
+                Cin = self.sim._model.getNodeCin(node, pollutant)
+                d = self.sim._model.getNodeResult(node,5)
                 k = self.node_dict[node][pollutant][0]
-                C_star = self.node_dict[node][pollutant][1]
-                hrt = sim._model.getNodeHRT(node)
+                C_s = self.node_dict[node][pollutant][1]
+                hrt = self.sim._model.getNodeHRT(node)
                 # Calculate removal
-                if depth != 0.0 and Cin != 0.0:
-                    R = np.heaviside((Cin-C_star),0)*((1-np.exp(-k*hrt/depth))*(1-C_star/Cin))
+                if d != 0.0 and Cin != 0.0:
+                    R = np.heaviside((Cin-C_s),0)*((1-np.exp(-k*hrt/d))*(1-C_s/Cin))
                 else:
                     R = 0
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew) 
+                self.sim._model.setNodePollutant(node, pollutant, Cnew) 
 
-########################################################################
-# GRAVITY SETTLING
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: [k, C_star], pindex2: [k, C_star]},
-        'SWMM_Node_ID2': {pindex1: [k, C_star], pindex2: [k, C_star]}}
-"""
-class GravitySettling:
-    def __init__(self, sim, node_dict):
-        self.sim = sim
-        self.node_dict = node_dict
-        self.start_time = sim.start_time
-        self.last_timestep = self.start_time 
 
-    def treatment(self):
+    def GravitySettling(self):
+        """
+        GRAVITY SETTLING (SWMM Water Quality Manual, 2016)
+        During a quiescent period of time within a storage volume, a fraction
+        of suspended particles will settle out.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [k, C_s], pindex2: [k, C_s]},
+                'SWMM_Node_ID2': {pindex1: [k, C_s], pindex2: [k, C_s]}}
+        
+        k   = reaction rate constant (SI: m/hr, US: ft/hr)
+        C_s = constant residual concentration that always remains (SI or US: mg/L)
+        """
         # Get current time
-        current_step = sim.current_time
+        current_step = self.sim.current_time
         # Calculate model dt in seconds
         dt = (current_step - self.last_timestep).total_seconds()
         # Updating reference step
         self.last_timestep = current_step
+        
+        for node in self.node_dict:
+            for pollutant in self.node_dict[node]:
+                Qin = self.sim._model.getNodeResult(node,0)
+                k = self.node_dict[node][pollutant][0]
+                C_s = self.node_dict[node][pollutant][1]
+                C = self.sim._model.getNodeC2(node,pollutant)
+                d = self.sim._model.getNodeResult(node,5)
+                if d != 0.0:
+                    # Calculate new concentration
+                    Cnew = np.heaviside((0.1-Qin),0)*(C_s+(C-C_s)*np.exp(-k/d*dt/3600))+(1-np.heaviside((0.1-Qin),0))*C
+                else:
+                    Cnew = np.heaviside((0.1-Qin),0)*C_s+(C-C_s)+(1-np.heaviside((0.1-Qin),0))*C
+                # Set new concentration
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
+
+
+    def CSTR_tank(self, t, C, Qin, Cin, Qout, V, k, n):
+        """
+        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR)
+        CSTR is a common model for a chemical reactor. The behavior of a CSTR
+        is modeled assuming it is not in steady state. This is because
+        outflow, inflow, volume, and concentration are constantly changing.
+
+        NOTE: You do not need to call this class, only the CSTR_solver. 
+        CSTR_tank is intitalized in __init__ in Node_Treatment.  
+        
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
+                'SWMM_Node_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
+        
+        k   = reaction rate constant (SI or US: 1/s)
+        n   = reaction order (first order, second order, etc.) (unitless)
+        c0  = intital concentration inside reactor (SI or US: mg/L)
+        """
+        dCdt = (Qin*Cin - Qout*C)/V + k*C**n
+        return dCdt
+
+
+    def CSTR_solver(self):
+        """
+        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR)
+        CSTR is a common model for a chemical reactor. The behavior of a CSTR
+        is modeled assuming it is not in steady state. This is because
+        outflow, inflow, volume, and concentration are constantly changing.
+        Therefore, Scipy.Integrate.ode solver is used to solve for concentration.
+        
+        NOTE: You only need to call this class, not CSTR_tank. CSTR_tank is
+        intitalized in __init__ in Node_Treatment.  
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
+                'SWMM_Node_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
+        
+        k   = reaction rate constant (SI or US: 1/s)
+        n   = reaction order (first order, second order, etc.) (unitless)
+        c0  = intital concentration inside reactor (SI or US: mg/L)
+        """
+        # Get current time
+        current_step = self.sim.current_time
+        # Calculate model dt in seconds
+        dt = (current_step - self.last_timestep).total_seconds()
+        # Updating reference step
+        self.last_timestep = current_step
+
+        for node in self.node_dict:
+            for pollutant in self.node_dict[node]:
+                # Get parameters
+                Qin = self.sim._model.getNodeResult(node,0)
+                Cin = self.sim._model.getNodeCin(node,pollutant)
+                Qout = self.sim._model.getNodeResult(node,1)
+                V = self.sim._model.getNodeResult(node,3)
+                k = self.node_dict[node][pollutant][0]
+                n = self.node_dict[node][pollutant][1]
+                c0 = self.node_dict[node][pollutant][2]
+                # Parameterize solver
+                self.solver.set_f_params(Qin,Cin,Qout,V,k,n)
+                # Solve ODE
+                if index == 0:
+                    self.solver.set_initial_value(c0, 0.0)
+                    self.solver.integrate(self.solver.t+dt)
+                else:
+                    self.solver.set_initial_value(self.solver.y, self.solver.t)
+                    self.solver.integrate(self.solver.t+dt)
+                # Set new concentration
+                self.sim._model.setNodePollutant(node, pollutant, self.solver.y[0])
+    
+
+    def SedimentationResuspension(self):
+        """
+        SEDIMENTATION & RESUSPENSION (Troutman et al. 2020)
+        Model considers both settling, as a function of depth, and resuspension,
+        as a function of flow.
+
+        Dictionary format: 
+        dict = {'SWMM_Node_ID1': {pindex1: [v_s, a, b], pindex2: [v_s, a, b]},
+                'SWMM_Node_ID2': {pindex1: [v_s, a, b], pindex2: [v_s, a, b]}}
+        
+        v_s = settling velcity (SI: m/s, US: ft/s)
+        a   = ratio between velcity and TSS resuspension to result in 100% 
+              resuspension for the maximum velociy through storage pipe
+        b   = linear approximation of the ratio bewteen flow and velocity
+              computed for each upstream inline storage asset
+        """
+        # Get current time
+        current_step = self.sim.current_time
+        # Calculate model dt in seconds
+        dt = (current_step - self.last_timestep).total_seconds()
+        # Updating reference step
+        self.last_timestep = current_step
+
         # Read from user dictionary
         for node in self.node_dict:
             for pollutant in self.node_dict[node]:
-                Qin = sim._model.getNodeResult(node,0)
-                k = self.node_dict[node][pollutant][0]
-                C_star = self.node_dict[node][pollutant][1]
-                C = sim._model.getNodePollutant(node,pollutant)
-                depth = sim._model.getNodeResult(node,5)
-                if depth != 0.0:
-                    # Calculate new concentration
-                    Cnew = np.heaviside((0.1-Qin),0)*(C_star+(C-C_star)*np.exp(-k/depth*dt/3600))+(1-np.heaviside((0.1-Qin),0))*C
+                Qin = self.sim._model.getNodeResult(node,0)
+                Cin = self.sim._model.getNodeCin(node,pollutant)
+                C = self.sim._model.getNodeC2(node,pollutant)
+                d = self.sim._model.getNodeResult(node,5)
+                v_s = self.node_dict[node][pollutant][0]
+                a = self.node_dict[node][pollutant][1]
+                b = self.node_dict[node][pollutant][2]
+                # Calculate removal
+                if d != 0.0 and Qin != 0.0:
+                    R = 1 - np.exp(-v_s*dt/d)-np.exp(-a*b/Qin)
                 else:
-                    Cnew = np.heaviside((0.1-Qin),0)*C_star+(C-C_star)+(1-np.heaviside((0.1-Qin),0))*C
+                    R = 0
+                # Calculate new concentration
+                Cnew = (1-R)*Cin
                 # Set new concentration
-                sim._model.setNodePollutant(node, pollutant, Cnew)
+                self.sim._model.setNodePollutant(node, pollutant, Cnew)
 
-########################################################################
-# CSTR
-"""
-Dictionary format: 
-dict = {'SWMM_Node_ID1': {pindex1: [k, C_star], pindex2: [k, C_star]},
-        'SWMM_Node_ID2': {pindex1: [k, C_star], pindex2: [k, C_star]}}
-"""
-class CSTR:
-    def __init__(self, sim, node_dict):
-        self.sim = sim
-        self.node_dict = node_dict
-        self.start_time = sim.start_time
-        self.last_timestep = self.start_time 
-
-    def tank(self, t, y):
-        # Read from user dictionary
-        for node in node_dict:
-            for pollutant in node_dict[node]:
-                Cin = sim._model.getNodeCin(node, pollutant)
-                Qin = sim._model.getNodeResult(node, 0)
-                Qout = sim._model.getNodeResult(node, 1)
-                V = sim._model.getNodeResult(node, 3)
-                k = Node_dict[node][pollutant][0]
-                # Setup variables for ODE solver
-                C = y[0]
-                n = len(y)
-                dCdt = np.zeros((n,1))
-                dCdt[0] = (Qin*Cin - Qout*C)/V - k*C
-                return dCdt
-
-    def treatment(self):
-        # Get current time
-        current_step = sim.current_time
-        # Calculate model dt in seconds
-        dt = (current_step - last_timestep).total_seconds()
-        # Updating reference step
-        last_timestep = current_step
-
-        # Read from user dictionary
-        for node in node_dict:
-            for pollutant in node_dict[node]:
-                r = integrate.ode(tank).set_integrator('vode', method='bdf')
-                t_start = 0.0
-                t_final = dt
-                num_steps = np.floor((t_final - t_start)/dt)+1
-
-                C_t_zero = Cin
-                r.set_initial_value([C_t_zero], t_start)
-
-                t = np.zeros((num_steps, 1))
-                C = np.zeros((num_steps, 1))
-                t[0] = t_start
-                C[0] = C_t_zero
-
-                k = 1
-                while r.successful() and k < num_steps:
-                    r.integrate(r.t + dt)
-                    t[k] = r.t
-                    C[k] = r.y[0]
-                    k += 1
-
-            sim._model.setNodePollutant(node, pollutant, Cnew)
-
-########################################################################

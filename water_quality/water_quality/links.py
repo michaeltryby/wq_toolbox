@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-05 08:33:46
+# @Last Modified time: 2020-05-05 11:07:05
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -15,7 +15,8 @@ class Link_Treatment:
         self.sim = sim
         self.link_dict = link_dict
         self.start_time = self.sim.start_time
-        self.last_timestep = self.start_time 
+        self.last_timestep = self.start_time
+        self.solver = ode(self.CSTR_tank) 
 
 
     def EventMeanConc(self):
@@ -217,15 +218,31 @@ class Link_Treatment:
                 # Set new concentration
                 self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
-
-    def CSTR(self):
+    def CSTR_tank(self, t, C, Q, Cin, V, k, n):
         """
         UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR)
         CSTR is a common model for a chemical reactor. The behavior of a CSTR
         is modeled assuming it is not in steady state. This is because
         outflow, inflow, volume, and concentration are constantly changing.
-        Therefore, an ODE solver is used to solve for cocentration.s
+
+        NOTE: You do not need to call this class, only the CSTR_solver. 
+        CSTR_tank is intitalized in __init__ in Link_Treatment.  
+        """
+        dCdt = (Cin-C)*Q/V + k*C**n
+        return dCdt
+
+
+    def CSTR_solver(self):
+        """
+        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR)
+        CSTR is a common model for a chemical reactor. The behavior of a CSTR
+        is modeled assuming it is not in steady state. This is because
+        outflow, inflow, volume, and concentration are constantly changing.
+        Therefore, Scipy.Integrate.ode solver is used to solve for concentration.
         
+        NOTE: You only need to call this class, not CSTR_tank. CSTR_tank is
+        intitalized in __init__ in Link_Treatment.  
+
         Dictionary format: 
         dict = {'SWMM_Link_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
                 'SWMM_Link_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
@@ -234,40 +251,33 @@ class Link_Treatment:
         n   = reaction order (first order, second order, etc.) (unitless)
         c0  = intital concentration inside reactor (SI or US: mg/L)
         """
-        def tank(t, Qin, Cin, V, k, n):
-            dCdt = Q/V*(Cin - C) + k*C**n
-            return dCdt
+        # Get current time
+        current_step = self.sim.current_time
+        # Calculate model dt in seconds
+        dt = (current_step - self.last_timestep).total_seconds()
+        # Updating reference step
+        self.last_timestep = current_step
 
-        def solver(self):
-            # Get current time
-            current_step = self.sim.current_time
-            # Calculate model dt in seconds
-            dt = (current_step - last_timestep).total_seconds()
-            # Updating reference step
-            last_timestep = current_step
-
-            # Get parameters
-            Q = self.sim._model.getNodeResult(link,0)
-            Cin = self.sim._model.getNodeCin(link,pollutant)
-            V = self.sim._model.getNodeResult(link,2)
-            k = link_dict[link][pollutant][0]
-            n = link_dict[link][pollutant][1]
-            c0 = link_dict[link][pollutant][2]
-
-            # Setup solver
-            solver = ode(tank)
-            solver.set_f_params(Q,Cin,V,k,n)
-
-            for link in link_dict:
-                for pollutant in link_dict[link]:
-                    if index == 0:
-                        solver.set_initial_value(c0, 0.0)
-                        solver.integrate(solver.t+dt)
-                    else:
-                        solver.set_initial_value(solver.y, solver.t)
-                        solver.integrate(solver.t+dt)
-                    # Set new concentration
-                    self.sim._model.setNodePollutant(link, pollutant, solver.y[0])
+        for link in self.link_dict:
+            for pollutant in self.link_dict[link]:
+                # Get parameters
+                Q = self.sim._model.getLinkResult(link,0)
+                Cin = self.sim._model.getLinkPollutant(link,pollutant)
+                V = self.sim._model.getLinkResult(link,2)
+                k = self.link_dict[link][pollutant][0]
+                n = self.link_dict[link][pollutant][1]
+                c0 = self.link_dict[link][pollutant][2]
+                # Parameterize solver
+                self.solver.set_f_params(Qin,Cin,Qout,V,k,n)
+                # Solve ODE
+                if index == 0:
+                    self.solver.set_initial_value(c0, 0.0)
+                    self.solver.integrate(self.solver.t+dt)
+                else:
+                    self.solver.set_initial_value(self.solver.y, self.solver.t)
+                    self.solver.integrate(self.solver.t+dt)
+                # Set new concentration
+                self.sim._model.setLinkPollutant(link, pollutant, self.solver.y[0])
     
 
     def SedimentationResuspension(self):
