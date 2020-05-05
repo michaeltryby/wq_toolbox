@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-05 11:04:31
+# @Last Modified time: 2020-05-05 11:09:57
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -242,7 +242,7 @@ class Node_Treatment:
         outflow, inflow, volume, and concentration are constantly changing.
         Therefore, Scipy.Integrate.ode solver is used to solve for concentration.
         
-        NOTE: You only need to call this class, not CSTR_tank. CSTR_tank is
+        NOTE: You only need to call this method, not CSTR_tank. CSTR_tank is
         intitalized in __init__ in Node_Treatment.  
 
         Dictionary format: 

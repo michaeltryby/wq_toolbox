@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-05 11:07:05
+# @Last Modified time: 2020-05-05 11:09:52
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -234,13 +234,13 @@ class Link_Treatment:
 
     def CSTR_solver(self):
         """
-        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR)
+        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR) SOLVER
         CSTR is a common model for a chemical reactor. The behavior of a CSTR
         is modeled assuming it is not in steady state. This is because
         outflow, inflow, volume, and concentration are constantly changing.
         Therefore, Scipy.Integrate.ode solver is used to solve for concentration.
         
-        NOTE: You only need to call this class, not CSTR_tank. CSTR_tank is
+        NOTE: You only need to call this method, not CSTR_tank. CSTR_tank is
         intitalized in __init__ in Link_Treatment.  
 
         Dictionary format: 
