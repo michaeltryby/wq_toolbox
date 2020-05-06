@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-05 11:09:57
+# @Last Modified time: 2020-05-06 09:00:42
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -14,7 +14,7 @@ class Node_Treatment:
     def __init__(self, sim, node_dict):
         self.sim = sim
         self.node_dict = node_dict
-        self.start_time = sim.start_time
+        self.start_time = self.sim.start_time
         self.last_timestep = self.start_time
         self.solver = ode(self.CSTR_tank)
 
@@ -221,14 +221,6 @@ class Node_Treatment:
 
         NOTE: You do not need to call this class, only the CSTR_solver. 
         CSTR_tank is intitalized in __init__ in Node_Treatment.  
-        
-        Dictionary format: 
-        dict = {'SWMM_Node_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
-                'SWMM_Node_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
-        
-        k   = reaction rate constant (SI or US: 1/s)
-        n   = reaction order (first order, second order, etc.) (unitless)
-        c0  = intital concentration inside reactor (SI or US: mg/L)
         """
         dCdt = (Qin*Cin - Qout*C)/V + k*C**n
         return dCdt
@@ -236,7 +228,7 @@ class Node_Treatment:
 
     def CSTR_solver(self):
         """
-        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR)
+        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR) SOLVER
         CSTR is a common model for a chemical reactor. The behavior of a CSTR
         is modeled assuming it is not in steady state. This is because
         outflow, inflow, volume, and concentration are constantly changing.
@@ -281,7 +273,7 @@ class Node_Treatment:
                     self.solver.integrate(self.solver.t+dt)
                 # Set new concentration
                 self.sim._model.setNodePollutant(node, pollutant, self.solver.y[0])
-    
+        
 
     def SedimentationResuspension(self):
         """

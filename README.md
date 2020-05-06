@@ -30,11 +30,9 @@ Please raise an issue on the repository or reach out if you run into any issues 
 Here is an example implementation on how you would use this library for evaluating the ability of a rule based control in maintaining the flows in a network below a desired threshold. 
 
 ```python 
-import water_quality
+import wq_toolbox
 from pyswmm import Simulations,Nodes
 
 # Enter example here
 
 ```
-
-Detailed documentation can be found on the [webpage](https://klabum.github.io/water_quality/)

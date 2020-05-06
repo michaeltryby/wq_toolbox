@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-05 11:09:52
+# @Last Modified time: 2020-05-06 08:45:35
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -30,7 +30,6 @@ class Link_Treatment:
         
         C = constant treatment concentration for each pollutant (SI or US: mg/L)
         """
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 # Set concentration
@@ -48,7 +47,6 @@ class Link_Treatment:
         
         R = pollutant removal fraction (unitless)
         """
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 #Get parameters
@@ -73,7 +71,6 @@ class Link_Treatment:
         R1 = pollutant removal fraction (unitless) 
         R2 = pollutant removal fraction for other pollutant (unitless)
         """
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 #Get parameters
@@ -100,7 +97,6 @@ class Link_Treatment:
         BC  = boundary concentration that determines removal rate (SI or US: mg/L)
         R_u = upper removal rate (unitless)
         """
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 # Get Cin for each pollutant/link
@@ -162,7 +158,6 @@ class Link_Treatment:
         C_s = constant residual concentration that always remains (SI or US: mg/L)
 
         """
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 # Get Cin for each pollutant/link
@@ -202,19 +197,18 @@ class Link_Treatment:
         # Updating reference step
         self.last_timestep = current_step
         
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
-                Qin = self.sim._model.getLinkResult(link,0)
+                Q = self.sim._model.getLinkResult(link,0)
                 k = self.link_dict[link][pollutant][0]
                 C_s = self.link_dict[link][pollutant][1]
                 C = self.sim._model.getLinkC2(link,pollutant)
                 d = self.sim._model.getLinkResult(link,1)
                 if d != 0.0:
                     # Calculate new concentration
-                    Cnew = np.heaviside((0.1-Qin),0)*(C_s+(C-C_s)*np.exp(-k/d*dt/3600))+(1-np.heaviside((0.1-Qin),0))*C
+                    Cnew = np.heaviside((0.1-Q),0)*(C_s+(C-C_s)*np.exp(-k/d*dt/3600))+(1-np.heaviside((0.1-Q),0))*C
                 else:
-                    Cnew = np.heaviside((0.1-Qin),0)*C_s+(C-C_s)+(1-np.heaviside((0.1-Qin),0))*C
+                    Cnew = np.heaviside((0.1-Q),0)*C_s+(C-C_s)+(1-np.heaviside((0.1-Q),0))*C
                 # Set new concentration
                 self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
@@ -262,13 +256,13 @@ class Link_Treatment:
             for pollutant in self.link_dict[link]:
                 # Get parameters
                 Q = self.sim._model.getLinkResult(link,0)
-                Cin = self.sim._model.getLinkPollutant(link,pollutant)
+                Cin = self.sim._model.getLinkC2(link,pollutant)
                 V = self.sim._model.getLinkResult(link,2)
                 k = self.link_dict[link][pollutant][0]
                 n = self.link_dict[link][pollutant][1]
                 c0 = self.link_dict[link][pollutant][2]
                 # Parameterize solver
-                self.solver.set_f_params(Qin,Cin,Qout,V,k,n)
+                self.solver.set_f_params(Q,Cin,V,k,n)
                 # Solve ODE
                 if index == 0:
                     self.solver.set_initial_value(c0, 0.0)
@@ -303,18 +297,17 @@ class Link_Treatment:
         # Updating reference step
         self.last_timestep = current_step
 
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
-                Qin = self.sim._model.getLinkResult(link,0)
+                Q = self.sim._model.getLinkResult(link,0)
                 Cin = self.sim._model.getLinkC2(link,pollutant)
                 d = self.sim._model.getLinkResult(link,1)
                 v_s = self.link_dict[link][pollutant][0]
                 a = self.link_dict[link][pollutant][1]
                 b = self.link_dict[link][pollutant][2]
                 # Calculate removal
-                if d != 0.0 and Qin != 0.0:
-                    R = 1 - np.exp(-v_s*dt/d)-np.exp(-a*b/Qin)
+                if d != 0.0 and Q != 0.0:
+                    R = 1 - np.exp(-v_s*dt/d)-np.exp(-a*b/Q)
                 else:
                     R = 0
                 # Calculate new concentration
@@ -349,14 +342,13 @@ class Link_Treatment:
         # Updating reference step
         self.last_timestep = current_step
 
-        # Read from user dictionary
         for link in self.link_dict:
             for pollutant in self.link_dict[link]:
                 Cin = self.sim._model.getLinkC2(link,pollutant)
-                Qin = self.sim._model.getLinkResult(link,0)
+                Q = self.sim._model.getLinkResult(link,0)
                 A = self.sim._model.getLinkResult(link,3)
                 d = self.sim._model.getLinkResult(link,1)
-                v = Qin/A
+                v = Q/A
                 w = self.link_dict[link][pollutant][0]
                 So = self.link_dict[link][pollutant][1]
                 Ss = self.link_dict[link][pollutant][2]
@@ -373,8 +365,8 @@ class Link_Treatment:
                         Qs = w*qs   # lb/s
                     else:
                         Qs = 0.0
-                    if Qin !=0.0:
-                        Cnew = (Qs/Qin)*(453592/28.3168) + Cin   # mg/L
+                    if Q !=0.0:
+                        Cnew = (Qs/Q)*(453592/28.3168) + Cin   # mg/L
                         # Set new concentration
                         self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
@@ -388,8 +380,8 @@ class Link_Treatment:
                         Qs = w*qs   # kg/s
                     else:
                         Qs = 0.0
-                    if Qin != 0.0:
-                        Cnew = ((Qs/Qin)*1000) + Cin  # mg/L
+                    if Q != 0.0:
+                        Cnew = ((Qs/Q)*1000) + Cin  # mg/L
                         # Set new concentration
-                        self.sim._model.setLinkPollutant(link, pollutant, Cnew)v
+                        self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
