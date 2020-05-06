@@ -1,4 +1,4 @@
-# wq_tooolbox: PySWMM toolbox for modelling any pollutant generation or removal method
+# wq_toolbox: PySWMM toolbox for modelling any pollutant generation or removal method
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
