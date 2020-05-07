@@ -2,21 +2,21 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-06 08:45:35
+# @Last Modified time: 2020-05-07 12:26:22
 
 from pyswmm.simulation import Simulation
 import numpy as np
 from scipy.integrate import ode 
 
 
-class Link_Treatment:
+class Link_Quality:
     
     def __init__(self, sim, link_dict):
         self.sim = sim
         self.link_dict = link_dict
         self.start_time = self.sim.start_time
         self.last_timestep = self.start_time
-        self.solver = ode(self.CSTR_tank) 
+        self.solver = ode(self.CSTR_tank)
 
 
     def EventMeanConc(self):
@@ -226,7 +226,7 @@ class Link_Treatment:
         return dCdt
 
 
-    def CSTR_solver(self):
+    def CSTR_solver(self, index):
         """
         UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR) SOLVER
         CSTR is a common model for a chemical reactor. The behavior of a CSTR

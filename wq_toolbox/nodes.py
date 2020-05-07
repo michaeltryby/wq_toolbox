@@ -2,14 +2,14 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-06 09:00:42
+# @Last Modified time: 2020-05-07 12:26:39
 
 from pyswmm.simulation import Simulation
 import numpy as np
 from scipy.integrate import ode 
 
 
-class Node_Treatment:
+class Node_Quality:
     
     def __init__(self, sim, node_dict):
         self.sim = sim
