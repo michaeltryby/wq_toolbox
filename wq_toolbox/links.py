@@ -2,11 +2,10 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-11 10:16:26
+# @Last Modified time: 2020-05-11 14:14:05
 
 from pyswmm.simulation import Simulation
 import numpy as np
-from scipy.integrate import ode 
 
 
 class Link_Quality:
@@ -16,7 +15,6 @@ class Link_Quality:
         self.link_dict = link_dict
         self.start_time = self.sim.start_time
         self.last_timestep = self.start_time
-        self.solver = ode(self.CSTR_tank)
 
 
     def EventMeanConc(self):
@@ -144,39 +142,6 @@ class Link_Quality:
                 self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
 
-    def kCModel(self):
-        """
-        K-C_STAR MODEL (SWMM Water Quality Manual, 2016)
-        The first-order model with bachground concnetration made popular by 
-        Kadlec and Knight (1996) for long-term treatment performance of wetlands.
-
-        Dictionary format: 
-        dict = {'SWMM_Link_ID1': {pindex1: [k, C_s], pindex2: [k, C_s]},
-                'SWMM_Link_ID2': {pindex1: [k, C_s], pindex2: [k, C_s]}}
-        
-        k   = reaction rate constant (SI: m/hr, US: ft/hr)
-        C_s = constant residual concentration that always remains (SI or US: mg/L)
-
-        """
-        for link in self.link_dict:
-            for pollutant in self.link_dict[link]:
-                # Get Cin for each pollutant/link
-                Cin = self.sim._model.getLinkC2(link, pollutant)
-                d = self.sim._model.getLinkResult(link,1)
-                k = self.link_dict[link][pollutant][0]
-                C_s = self.link_dict[link][pollutant][1]
-                hrt = self.sim._model.getLinkHRT(link)
-                # Calculate removal
-                if d != 0.0 and Cin != 0.0:
-                    R = np.heaviside((Cin-C_s),0)*((1-np.exp(-k*hrt/d))*(1-C_s/Cin))
-                else:
-                    R = 0
-                # Calculate new concentration
-                Cnew = (1-R)*Cin
-                # Set new concentration
-                self.sim._model.setLinkPollutant(link, pollutant, Cnew) 
-
-
     def GravitySettling(self):
         """
         GRAVITY SETTLING (SWMM Water Quality Manual, 2016)
@@ -212,67 +177,6 @@ class Link_Quality:
                 # Set new concentration
                 self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
-    def CSTR_tank(self, t, C, Q, Cin, V, k, n):
-        """
-        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR)
-        CSTR is a common model for a chemical reactor. The behavior of a CSTR
-        is modeled assuming it is not in steady state. This is because
-        outflow, inflow, volume, and concentration are constantly changing.
-
-        NOTE: You do not need to call this class, only the CSTR_solver. 
-        CSTR_tank is intitalized in __init__ in Link_Treatment.  
-        """
-        dCdt = (Cin-C)*Q/V + k*C**n
-        return dCdt
-
-
-    def CSTR_solver(self, index):
-        """
-        UNSTEADY CONTINUOUSLY STIRRED TANK REACTOR (CSTR) SOLVER
-        CSTR is a common model for a chemical reactor. The behavior of a CSTR
-        is modeled assuming it is not in steady state. This is because
-        outflow, inflow, volume, and concentration are constantly changing.
-        Therefore, Scipy.Integrate.ode solver is used to solve for concentration.
-        
-        NOTE: You only need to call this method, not CSTR_tank. CSTR_tank is
-        intitalized in __init__ in Link_Treatment.  
-
-        Dictionary format: 
-        dict = {'SWMM_Link_ID1': {pindex1: [k, n, c0], pindex2: [k, n, c0]},
-                'SWMM_Link_ID2': {pindex1: [k, n, c0], pindex2: [k, n, c0]}}
-        
-        k   = reaction rate constant (SI or US: 1/s)
-        n   = reaction order (first order, second order, etc.) (unitless)
-        c0  = intital concentration inside reactor (SI or US: mg/L)
-        """
-        # Get current time
-        current_step = self.sim.current_time
-        # Calculate model dt in seconds
-        dt = (current_step - self.last_timestep).total_seconds()
-        # Updating reference step
-        self.last_timestep = current_step
-
-        for link in self.link_dict:
-            for pollutant in self.link_dict[link]:
-                # Get parameters
-                Q = self.sim._model.getLinkResult(link,0)
-                Cin = self.sim._model.getLinkC2(link,pollutant)
-                V = self.sim._model.getLinkResult(link,2)
-                k = self.link_dict[link][pollutant][0]
-                n = self.link_dict[link][pollutant][1]
-                c0 = self.link_dict[link][pollutant][2]
-                # Parameterize solver
-                self.solver.set_f_params(Q,Cin,V,k,n)
-                # Solve ODE
-                if index == 0:
-                    self.solver.set_initial_value(c0, 0.0)
-                    self.solver.integrate(self.solver.t+dt)
-                else:
-                    self.solver.set_initial_value(self.solver.y, self.solver.t)
-                    self.solver.integrate(self.solver.t+dt)
-                # Set new concentration
-                self.sim._model.setLinkPollutant(link, pollutant, self.solver.y[0])
-    
 
     def SedimentationResuspension(self):
         """
@@ -299,13 +203,13 @@ class Link_Quality:
             for pollutant in self.link_dict[link]:
                 Q = self.sim._model.getLinkResult(link,0)
                 Cin = self.sim._model.getLinkC2(link,pollutant)
-                #v = velocity getter
+                v = self.sim._model.getConduitVelocity(link)
                 d = self.sim._model.getLinkResult(link,1)
                 v_s = self.link_dict[link][pollutant][0]
                 a = self.link_dict[link][pollutant][1]
                 # Calculate removal
-                if d != 0.0 and Q != 0.0:
-                    R = 1 - np.exp(-v_s*dt/d)-np.exp(-a/v)
+                if d != 0.0 and v != 0.0:
+                    R = 1 - np.exp(-v_s*dt/d) - np.exp(-a/(v*0.305))
                 else:
                     R = 0
                 # Calculate new concentration
@@ -344,7 +248,7 @@ class Link_Quality:
                 Cin = self.sim._model.getLinkC2(link,pollutant)
                 Q = self.sim._model.getLinkResult(link,0)
                 d = self.sim._model.getLinkResult(link,1)
-                #v = add setter
+                v = self.sim._model.getConduitVelocity(link)
                 w = self.link_dict[link][pollutant][0]
                 So = self.link_dict[link][pollutant][1]
                 Ss = self.link_dict[link][pollutant][2]
@@ -362,7 +266,7 @@ class Link_Quality:
                     else:
                         Qs = 0.0
                     if Q !=0.0:
-                        Cnew = (Qs/Q)*(453592/28.3168) + Cin   # mg/L
+                        Cnew = (Qs/Q)*(453592/28.3168)   # mg/L
                         # Set new concentration
                         self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
@@ -371,13 +275,13 @@ class Link_Quality:
                     yw = 1000   # kg/m^3
                     theta = (d*So/((Ss-1)*d50))*(1/0.001)   # unitless
                     if v != 0.0:
-                        f = (2*g*So*d)/v**2     # unitless
+                        f = (2*g*So*d)/(v*0.305)**2     # unitless
                         qs = 0.1*(1/f)*theta**(5/2)*yw*((Ss-1)*g*(d50*0.001)**3)**(1/2) # kg/m-s
                         Qs = w*qs   # kg/s
                     else:
                         Qs = 0.0
                     if Q != 0.0:
-                        Cnew = ((Qs/Q)*1000) + Cin  # mg/L
+                        Cnew = ((Qs/Q)*1000)  # mg/L
                         # Set new concentration
                         self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 

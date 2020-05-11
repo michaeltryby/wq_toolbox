@@ -381,25 +381,6 @@ def test_GravitySettling_load():
 
 
 # CSTR
-def test_CSTR_conc():
-    dict1 = {'Tank': {0: []}}
-    conc = []
-    con = []
-    with Simulation("./inps/tank_variableinflow_notreatment.inp") as sim:
-        CS = Node_Quality(sim, dict1)
-        Tank = Nodes(sim)["Tank"]
-        for step in sim:
-            CS.CSTR()
-            c = Tank.pollut_quality
-            conc.append(c['P1'])
-    with Simulation("./inps/tank_variableinflow_gravsettling.inp") as sim:
-        Tank = Nodes(sim)["Tank"]
-        for step in sim:
-            co = Tank.pollut_quality
-            con.append(co['P1'])
-    error = mse(con, conc)
-    assert error <= 0.03
-
 def test_CSTR_load():
     dict1 = {'Tank': {0: [-0.2, 1.0, 0.0]}}
     conc = []
