@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-07 12:26:22
+# @Last Modified time: 2020-05-11 10:16:26
 
 from pyswmm.simulation import Simulation
 import numpy as np
@@ -105,7 +105,7 @@ class Link_Quality:
                 BC = self.link_dict[link][pollutant][1]
                 R_u = self.link_dict[link][pollutant][2]
                 # Calculate removal
-                R = (1-np.heaviside((Cin-BC),0))*R_l+np.heaviside((Cin-bound_C),0)*R_u
+                R = (1-np.heaviside((Cin-BC),0))*R_l+np.heaviside((Cin-BC),0)*R_u
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
                 # Set new concentration
@@ -276,19 +276,17 @@ class Link_Quality:
 
     def SedimentationResuspension(self):
         """
-        SEDIMENTATION & RESUSPENSION (Troutman et al. 2020)
+        SEDIMENTATION & RESUSPENSION
         Model considers both settling, as a function of depth, and resuspension,
-        as a function of flow.
+        as a function of velocity.
 
         Dictionary format: 
-        dict = {'SWMM_Link_ID1': {pindex1: [v_s, a, b], pindex2: [v_s, a, b]},
-                'SWMM_Link_ID2': {pindex1: [v_s, a, b], pindex2: [v_s, a, b]}}
+        dict = {'SWMM_Link_ID1': {pindex1: [v_s, a], pindex2: [v_s, a]},
+                'SWMM_Link_ID2': {pindex1: [v_s, a], pindex2: [v_s, a]}}
         
         v_s = settling velcity (SI: m/s, US: ft/s)
         a   = ratio between velcity and pollutant resuspension to result in 
-              100% resuspension for the maximum velociy through storage pipe
-        b   = linear approximation of the ratio bewteen flow and velocity
-              computed for each upstream inline storage asset
+              75% resuspension for the maximum velociy through storage pipe
         """
         # Get current time
         current_step = self.sim.current_time
@@ -301,18 +299,17 @@ class Link_Quality:
             for pollutant in self.link_dict[link]:
                 Q = self.sim._model.getLinkResult(link,0)
                 Cin = self.sim._model.getLinkC2(link,pollutant)
+                #v = velocity getter
                 d = self.sim._model.getLinkResult(link,1)
                 v_s = self.link_dict[link][pollutant][0]
                 a = self.link_dict[link][pollutant][1]
-                b = self.link_dict[link][pollutant][2]
                 # Calculate removal
                 if d != 0.0 and Q != 0.0:
-                    R = 1 - np.exp(-v_s*dt/d)-np.exp(-a*b/Q)
+                    R = 1 - np.exp(-v_s*dt/d)-np.exp(-a/v)
                 else:
                     R = 0
                 # Calculate new concentration
                 Cnew = (1-R)*Cin
-                Cnew = min(Cin, Cnew)
                 # Set new concentration
                 self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
@@ -346,9 +343,8 @@ class Link_Quality:
             for pollutant in self.link_dict[link]:
                 Cin = self.sim._model.getLinkC2(link,pollutant)
                 Q = self.sim._model.getLinkResult(link,0)
-                A = self.sim._model.getLinkResult(link,3)
                 d = self.sim._model.getLinkResult(link,1)
-                v = Q/A
+                #v = add setter
                 w = self.link_dict[link][pollutant][0]
                 So = self.link_dict[link][pollutant][1]
                 Ss = self.link_dict[link][pollutant][2]
