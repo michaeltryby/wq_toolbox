@@ -11,6 +11,7 @@ class Node_Quality:
         self.start_time = self.sim.start_time
         self.last_timestep = self.start_time
         self.solver = ode(self.CSTR_tank)
+        self.solver2 = ode(self.DO_tank)
 
 
     def EventMeanConc(self):
@@ -267,4 +268,61 @@ class Node_Quality:
                     self.solver.integrate(self.solver.t+dt)
                 # Set new concentration
                 self.sim._model.setNodePollutant(node, pollutant, self.solver.y[0])
-        
+
+    # Tank for DO reaction
+    def DO_tank(self, t, C, k):
+        dCdt = -k*C
+        return dCdt
+
+    # Solve for DO reaction
+    def DO_solver(self, index):
+        # Get current time
+        current_step = self.sim.current_time
+        # Calculate model dt in seconds
+        dt = (current_step - self.last_timestep).total_seconds()
+        # Updating reference step
+        self.last_timestep = current_step
+
+        for node in self.node_dict:
+            for pollutant in self.node_dict[node]:
+                # Get parameters
+                k = self.node_dict[node][pollutant][0]
+                c0 = self.node_dict[node][pollutant][1]
+                # Parameterize solver
+                self.solver2.set_f_params(k)
+                # Solve ODE
+                if index == 0:
+                    self.solver2.set_initial_value(c0, 0.0)
+                    self.solver2.integrate(self.solver2.t+dt)
+                else:
+                    self.solver2.set_initial_value(self.solver2.y, self.solver2.t)
+                    self.solver2.integrate(self.solver2.t+dt)
+        return self.solver2.y[0]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
