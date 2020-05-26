@@ -300,29 +300,3 @@ class Node_Quality:
         return self.solver2.y[0]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
