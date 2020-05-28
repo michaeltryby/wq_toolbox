@@ -224,8 +224,8 @@ class Link_Quality:
         
         w   = channel width (SI: m, US: ft)
         So  = bottom slope (SI: m/m, US: ft/ft)
-        d50 = mean sediment particle diameter (SI or US: mm)
         Ss  = specific gravity of sediment (for soil usually between 2.65-2.80)
+        d50 = mean sediment particle diameter (SI or US: mm)
         d   = depth (SI: m, US: ft)
         qs = sediment discharge per unit width (SI: kg/m-s, US: lb/ft-s)
         Qs = sediment discharge (SI: kg/s, US: lb/s)
