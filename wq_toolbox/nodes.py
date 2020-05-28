@@ -11,8 +11,6 @@ class Node_Quality:
         self.start_time = self.sim.start_time
         self.last_timestep = self.start_time
         self.solver = ode(self.CSTR_tank)
-        self.solver2 = ode(self.DO_tank)
-
 
     def EventMeanConc(self):
         """
