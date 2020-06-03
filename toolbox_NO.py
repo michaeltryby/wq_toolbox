@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-28 13:33:14
+# @Last Modified time: 2020-06-03 14:38:04
 
 # Import required modules
 from pyswmm import Simulation, Nodes, Links
@@ -37,13 +37,8 @@ Co_DO2 = 5.5
 Co_DO3 = 3.0
 t = 0
 
-# Tank Inflows
-Qin1 = np.genfromtxt('Qin1.txt', delimiter=',')
-Qin2 = np.genfromtxt('Qin2.txt', delimiter=',')
-Qin3 = np.genfromtxt('Qin3.txt', delimiter=',')
-
 # Setup toolbox simulation
-with Simulation("./Ellsworth_Doyle_NO.inp") as sim:
+with Simulation("./MBDoyle_NO.inp") as sim:
     # Get asset information
     Ellsworth = Nodes(sim)["93-50408"]
     Doyle_Basin = Nodes(sim)["93-50404"]
@@ -63,13 +58,11 @@ with Simulation("./Ellsworth_Doyle_NO.inp") as sim:
     solver3 = ode(CSTR_tank)
     solver3.set_integrator("dopri5")
 
+    #Temp count for control actions every 30 minutes
+    _tempcount = 30
+
     # Step through the simulation    
     for index,step in enumerate(sim):
-                
-        # Set inflow
-        sim._model.setNodeInflow("93-50408", Qin1[index])
-        sim._model.setNodeInflow("93-50404", Qin2[index])
-        sim._model.setNodeInflow("93-49759", Qin3[index])
 
         # Calculate dt
         current_step = sim.current_time
@@ -79,7 +72,7 @@ with Simulation("./Ellsworth_Doyle_NO.inp") as sim:
 
         # Calculate DO concentration in tank layers
         # Get depth to calculate DO
-        depth = sim._model.getNodeResult("93-49759", 5)
+        depth = Wetland.depth
         Wetland_depth.append(depth)
 
         # reset DO if tank is empty
@@ -137,10 +130,10 @@ with Simulation("./Ellsworth_Doyle_NO.inp") as sim:
         
         # Calculate NO concentration in tanks
         # Get parameters to calculate NO
-        Qin=sim._model.getNodeResult("93-49759",0)
+        Qin=Wetland.total_inflow
         Cin=sim._model.getNodeCin("93-49759",0)
-        Qout=sim._model.getNodeResult("93-49759",1)
-        V=sim._model.getNodeResult("93-49759",3)
+        Qout=Wetland.total_outflow
+        V=Wetland.volume
 
         #Solve ODE
         if index == 0:
@@ -168,12 +161,25 @@ with Simulation("./Ellsworth_Doyle_NO.inp") as sim:
         sim._model.setNodePollutant("93-49759", 0, solver3.y[0])
 
         # Get Nitrate concentration        
-        c3_N = Wetland.pollut_quality
-        Wetland_N.append(c3_N['NO'])
+        Wlnd_N = Wetland.pollut_quality['NO']
+        Wetland_N.append(Wlnd_N)
 
         # Get flow for each asset
-        Wetland_flow.append(sim._model.getNodeResult("93-49759", 0))
-        Wetland_vol.append(sim._model.getNodeResult("93-49759", 3))
+        Wetland_flow.append(Qout)
+        #Wetland_vol.append(V)
+
+        # Control Actions (every 30 mins)
+        if _tempcount == 30:
+            # If depth <= 6.75 ft then close valve
+            if depth <= 6.75:
+                Ells_valve.target_setting = 0.0
+            # After 36 hours, proportional release but no more than 33% open
+            else:    
+                Ells_valve.target_setting = min(0.33, Qout/(1.00*np.sqrt(2.0*32.2*depth)))
+            _tempcount = 0
+        _tempcount+=1
+        print(Ells_valve.target_setting)
+        
 
 #----------------------------------------------------------------------#
 # Confirm CSTR matches steady state equilibrium concentration
@@ -187,46 +193,39 @@ Cn = Co /((1+(k*V/Q))**2)
 print("Cn", Cn)
 """
 #----------------------------------------------------------------------#
-# Plot Results
+# Convert flow rate from cfs to m3/s
+conv_cfs_cms = [0.02832]*len(Wetland_flow)
+Wetland_flow_m = [a*b for a,b in zip(Wetland_flow,conv_cfs_cms)]
 
-# Calculate load
-Nload = [a*b for a,b in zip(Wetland_N,Wetland_flow)]
+# Convert depth from ft to m
+conv_ft_m = [0.3048]*len(Wetland_flow)
+Wetland_depth_m = [a*b for a,b in zip(Wetland_depth,conv_ft_m)]
+
+# Calculate load each timestep
+conv_mgs_kgs = [0.000001]*len(Wetland_flow)
+Nload = [a*b*c*d for a,b,c,d in zip(Wetland_N,Wetland_flow,conv_cfs_cms,conv_mgs_kgs)]
 Ncum_load = np.cumsum(Nload)
 
 # SS graphs
 #SS = [Cn]*len(Ncum_load3)
 
-plt.subplot(511)
-plt.plot(Wetland_N, 'm', label='Wetland')
-#plt.plot(SS, 'k', label='SteadyState')
-plt.ylabel("NO Conc")
-plt.xlabel("Time (s)")
-plt.legend()
-
-plt.subplot(512)
-plt.plot(Wetland_DO1, 'b:', label='DO_Layer1')
-plt.plot(Wetland_DO2, 'r:', label='DO_Layer2')
-plt.plot(Wetland_DO3, 'g:', label='DO_Layer3')
-plt.ylabel("DO Conc")
-plt.xlabel("Time (s)")
-plt.legend()
-
-plt.subplot(513)
-plt.plot(Wetland_depth, 'm', label='Wetland')
-plt.ylabel("Depth")
-plt.xlabel("Time (s)")
-plt.legend()
-
-plt.subplot(514)
-plt.plot(Wetland_flow, 'm', label='Wetland')
-plt.ylabel("Flow")
-plt.xlabel("Time (s)")
-plt.legend()
-
-plt.subplot(515)
-plt.plot(Ncum_load, 'm', label='Wetland')
-plt.ylabel("NO Cumm Load")
-plt.xlabel("Time (s)")
-plt.legend()
+#----------------------------------------------------------------------#
+#Plot Results
+fig, ax = plt.subplots(5, sharex=True)
+ax[0].plot(Wetland_N)
+#ax[0].plot(SS, 'k', label='SteadyState')
+ax[0].set_ylabel("NO (mg/L)")
+ax[0].set_title("Wetland")
+ax[1].plot(Wetland_DO1, "m", label='DO_L1')
+ax[1].plot(Wetland_DO2, label='DO_L2')
+ax[1].plot(Wetland_DO3, label='DO_L3')
+ax[1].legend(loc="upper right")
+ax[1].set_ylabel("DO (mg/L)")
+ax[2].plot(Wetland_depth_m)
+ax[2].set_ylabel("Depth (m)")
+ax[3].plot(Wetland_flow_m)
+ax[3].set_ylabel("Flow (m³/s)")
+ax[4].plot(Ncum_load)
+ax[4].set_ylabel("NO Cum. Load (kg)")
+ax[4].set_xlabel("Time (min)")
 plt.show()
-
