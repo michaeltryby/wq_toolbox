@@ -261,7 +261,7 @@ class Link_Quality:
                         Qs = 0.0
                     if Q !=0.0:
                         Cnew = (Qs/Q)*(453592/28.3168)   # mg/L
-                        Cnew = Cin + Cnew
+                        Cnew = max(Cin, Cin+Cnew)
                         # Set new concentration
                         self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
@@ -277,7 +277,7 @@ class Link_Quality:
                         Qs = 0.0
                     if Q != 0.0:
                         Cnew = ((Qs/Q)*1000)  # mg/L
-                        Cnew = Cin + Cnew
+                        Cnew = max(Cin, Cin+Cnew)
                         # Set new concentration
                         self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
