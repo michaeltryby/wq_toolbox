@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-05-28 13:00:56
+# @Last Modified time: 2020-06-03 14:37:54
 
 # Import required modules
 from pyswmm import Simulation, Nodes, Links
@@ -12,44 +12,45 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Make dictionaries for each water quality method
-# C_s amd v_s from gravity Settling example in SWMM manual
-dict1 = {'93-50408': {0: [0.01, 20]}, '93-50404': {0: [0.01, 20]}} 
-dict2 = {'95-69044': {0: [68.0, 0.0037, 1.28, 0.035]}}
+# C_s and v_s from SWMM Manual
+dict1 = {'93-50408': {0: [0.01, 20.0]}, '93-50404': {0: [0.01, 20.0]}} 
+# width and slope from SWMM model
+# SS and d50 from "Urban Hydroinformatics" (Price & Vojinovi) pg 130 
+dict2 = {'95-70180': {0: [40.0, 0.00041, 2.6, 1.0]}}
 
 # Lists to store results
 Channel_conc = []
-Channel_flow =[]
+Channel_flow = []
+Channel_depth = []
 Ellsworth_conc = []
 Ellsworth_flow = []
-Dwn_Channel_conc = []
-Dwn_Channel_flow = []
+Ellsworth_depth = []
+#Dwn_Channel_conc = []
+#Dwn_Channel_flow = []
 Doyle_Basin_conc = []
 Doyle_Basin_flow = []
-
-# Tank Inflows
-Qin1 = np.genfromtxt('Qin1.txt', delimiter=',')
-Qin2 = np.genfromtxt('Qin2.txt', delimiter=',')
-Qin3 = np.genfromtxt('Qin3.txt', delimiter=',')
+Doyle_Basin_depth = []
+# Old channel ID for erosion "95-69044" (got negative flows b/c of negative elevation?)
 
 # Setup toolbox simulation
-with Simulation("./Ellsworth_Doyle_TSS.inp") as sim:
+with Simulation("./MBDoyle_TSS.inp") as sim:
     # Setup toolbox methods
     GS = Node_Quality(sim, dict1)
     ER = Link_Quality(sim, dict2)
     # Get asset information
     Ellsworth = Nodes(sim)["93-50408"]
+    Ells_valve = Links(sim)["95-70951"]
     Doyle_Basin = Nodes(sim)["93-50404"]
-    Channel = Links(sim)["95-69044"]
-    Dwn_Channel = Nodes(sim)["97-50264"]
+    Channel = Links(sim)["95-70180"]
+    #Dwn_Channel = Nodes(sim)["97-50264"]
     Wetland = Nodes(sim)["93-49759"]
 
+    # Temp count for control actions every 30 minutes
+    _tempcount = 30
+    # Tracking time so that we open the valve after 36 hours
+    _time = 0
     # Step through the simulation    
     for index,step in enumerate(sim):
-        
-        # Set inflow
-        sim._model.setNodeInflow("93-50408", Qin1[index])
-        sim._model.setNodeInflow("93-50404", Qin2[index])
-        sim._model.setNodeInflow("93-49759", Qin3[index])
 
         # Calculate gravity settling 
         GS.GravitySettling()
@@ -57,58 +58,91 @@ with Simulation("./Ellsworth_Doyle_TSS.inp") as sim:
         ER.Erosion()
 
         # Get TSS conc for each asset        
-        c1 = Channel.pollut_quality
-        Channel_conc.append(c1['TSS'])
-        c2 = Ellsworth.pollut_quality
-        Ellsworth_conc.append(c2['TSS'])
-        c3 = Dwn_Channel.pollut_quality
-        Dwn_Channel_conc.append(c3['TSS'])
-        c4 = Doyle_Basin.pollut_quality
-        Doyle_Basin_conc.append(c4['TSS'])
+        Ch_p = Channel.pollut_quality['TSS']
+        Channel_conc.append(Ch_p)
+        Ell_p = Ellsworth.pollut_quality['TSS']
+        Ellsworth_conc.append(Ell_p)
+        #DwnCh_p = Dwn_Channel.pollut_quality['TSS']
+        #Dwn_Channel_conc.append(DwnCh_p)
+        DB_p = Doyle_Basin.pollut_quality['TSS']
+        Doyle_Basin_conc.append(DB_p)
 
         # Get flow for  each asset
-        Channel_flow.append(sim._model.getLinkResult("95-69044", 0))
-        Ellsworth_flow.append(sim._model.getNodeResult("93-50408", 0))
-        Dwn_Channel_flow.append(sim._model.getNodeResult("97-50264", 0))
-        Doyle_Basin_flow.append(sim._model.getNodeResult("93-50404", 0))
+        Ch_f = Channel.flow
+        Channel_flow.append(Ch_f)
+        Ch_d = Channel.depth
+        Channel_depth.append(Ch_d)
+        Ell_f = Ellsworth.total_outflow
+        Ellsworth_flow.append(Ell_f)
+        Ell_d = Ellsworth.depth
+        Ellsworth_depth.append(Ell_d)
+        #Dwn_Channel_flow.append(Dwn_Channel.total_inflow)
+        DB_f = Doyle_Basin.total_outflow
+        Doyle_Basin_flow.append(DB_f)
+        DB_d = Doyle_Basin.depth
+        Doyle_Basin_depth.append(DB_d)
+
+        # Control Actions (every 30 mins)
+        # Proportional release after 36 hours
+        if _time <= 2160:
+            if _tempcount == 30:
+                # If concentration >= 20 or depth <= 15 close valve
+                if Ell_p >= 20.0 or Ell_d <= 15.0:
+                    Ells_valve.target_setting = 0.0  
+                else:  
+                    # Else proportional release but no more than 33% open
+                    Ells_valve.target_setting = min(0.33, Ell_f/np.sqrt(2.0*32.2*Ell_d))
+                _tempcount = 0
+            _tempcount += 1
+        else:
+            # After 36 hours, proportional release but no more than 33% open
+            Ells_valve.target_setting = min(0.33, Ell_f/np.sqrt(2.0*32.2*Ell_d))
+        _time += 1
+        print(Ells_valve.target_setting)
         
-       
 #----------------------------------------------------------------------#
 # Confirm gravity settling matches toolbox simulation
+"""
 swmm_c = []
 swmm_f = []
 
-with Simulation("./Ellsworth_Doyle_TSS_SWMM.inp") as sim:
+with Simulation("./MBDoyle_TSS_SWMM.inp") as sim:
     Ellsworth = Nodes(sim)["93-50408"]
     Doyle_Basin = Nodes(sim)["93-50404"]
     Wetland = Nodes(sim)["93-49759"]
     # Step through the simulation    
     for step in sim:
-        # Set inflow
-        sim._model.setNodeInflow("93-50408", Qin1[index])
-        sim._model.setNodeInflow("93-50404", Qin2[index])
-        sim._model.setNodeInflow("93-49759", Qin3[index])
         # Get newQual for Tank
         co = Ellsworth.pollut_quality
         swmm_c.append(co['TSS'])
         # Get flow for Tank
         swmm_f.append(sim._model.getNodeResult("93-50408", 0))
-
+"""
 #----------------------------------------------------------------------#
-# Calculate load each timestep
-load1 = [a*b for a,b in zip(Channel_conc,Channel_flow)]
-load2 = [a*b for a,b in zip(Ellsworth_conc,Ellsworth_flow)]
-load3 = [a*b for a,b in zip(Dwn_Channel_conc,Dwn_Channel_flow)]
-load4 = [a*b for a,b in zip(swmm_c,swmm_f)]
-load5 = [a*b for a,b in zip(Doyle_Basin_conc,Doyle_Basin_flow)]
+# Convert flow rate from cfs to m3/s
+conv_cfs_cms = [0.02832]*len(Channel_flow)
+Ellsworth_flow_m = [a*b for a,b in zip(Ellsworth_flow,conv_cfs_cms)]
+Channel_flow_m = [a*b for a,b in zip(Channel_flow,conv_cfs_cms)]
+Doyle_Basin_flow_m = [a*b for a,b in zip(Doyle_Basin_flow,conv_cfs_cms)]
 
-# Calculate cumulative load
+# Convert depth from ft to m
+conv_ft_m = [0.3048]*len(Ellsworth_flow)
+Wetland_depth_m = [a*b for a,b in zip(Ellsworth_depth,conv_ft_m)]
+
+# Calculate load each timestep
+conv_mgs_kgs = [0.000001]*len(Channel_flow)
+load1 = [a*b*c*d for a,b,c,d in zip(Channel_conc,Channel_flow,conv_cfs_cms, conv_mgs_kgs)]
+load2 = [a*b*c*d for a,b,c,d in zip(Ellsworth_conc,Ellsworth_flow,conv_cfs_cms, conv_mgs_kgs)]
+#load3 = [a*b*c*d for a,b,c,d in zip(Dwn_Channel_conc,Dwn_Channel_flow,conv_cfs_cms, conv_mgs_kgs)]
+#load4 = [a*b*c*d for a,b,c,d in zip(swmm_c,swmm_f,conv_cfs_cms,conv_mgs_kgs)]
+load5 = [a*b*c*d for a,b,c,d in zip(Doyle_Basin_conc,Doyle_Basin_flow,conv_cfs_cms,conv_mgs_kgs)]
+
+# Calculate cumulative load (dt = 1)
 cum_load1 = np.cumsum(load1)
 cum_load2 = np.cumsum(load2)
-cum_load3 = np.cumsum(load3)
-cum_load4 = np.cumsum(load4)
+#cum_load3 = np.cumsum(load3)
+#cum_load4 = np.cumsum(load4)
 cum_load5 = np.cumsum(load5)
-
 
 # Confirm erosion mass balance in Channel
 # Calculate error
@@ -116,31 +150,28 @@ cum_load5 = np.cumsum(load5)
 #print(error)
 
 #----------------------------------------------------------------------#
-# Plot Results
-plt.subplot(311)
-plt.plot(Channel_conc, 'g--', label='Channel')
-plt.plot(Ellsworth_conc, 'b--', label='Ellsworth')
-plt.plot(Doyle_Basin_conc, 'm--', label='Doyle Basin')
-#plt.plot(swmm_c, 'r--', label="SWMM_Ellsworth")
-plt.ylabel("TSS Conc")
-plt.xlabel("Time (s)")
-plt.legend()
-
-plt.subplot(312)
-plt.plot(Channel_flow, 'g--', label='Channel')
-plt.plot(Ellsworth_flow, 'b--', label='Ellsworth')
-plt.plot(Doyle_Basin_flow, 'm--', label='Doyle Basin')
-#plt.plot(swmm_f, 'r--', label="SWMM_Ellsworth")
-plt.ylabel("Flow")
-plt.xlabel("Time (s)")
-plt.legend()
-
-plt.subplot(313)
-plt.plot(cum_load1, 'g--', label='Channel')
-plt.plot(cum_load2, 'b--', label='Ellsworth')
-plt.plot(cum_load5, 'm--', label='Doyle Basin')
-#plt.plot(cum_load4, 'r--', label="SWMM_Ellsworth")
-plt.ylabel("TSS Cumm Load")
-plt.xlabel("Time (s)")
-plt.legend()
+# Plot Result
+fig, ax = plt.subplots(4, 3, sharex=True)
+ax[0,0].plot(Ellsworth_conc)
+ax[0,0].set_ylabel("TSS (mg/L)")
+ax[0,0].set_title("Ellsworth")
+ax[1,0].plot(Ellsworth_flow_m)
+ax[1,0].set_ylabel("Outflow (m³/s)")
+ax[2,0].plot(Ellsworth_depth)
+ax[2,0].set_ylabel("Depth (m)")
+ax[3,0].plot(cum_load2)
+ax[3,0].set_ylabel("Cum. Load (kg)")
+ax[3,0].set_xlabel("Time (min)")
+ax[0,1].plot(Channel_conc)
+ax[0,1].set_title("Channel")
+ax[1,1].plot(Channel_flow_m)
+ax[2,1].plot(Channel_depth)
+ax[3,1].plot(cum_load1)
+ax[3,1].set_xlabel("Time (min)")
+ax[0,2].plot(Doyle_Basin_conc)
+ax[0,2].set_title("MB Doyle Basin")
+ax[1,2].plot(Doyle_Basin_flow_m)
+ax[2,2].plot(Doyle_Basin_depth)
+ax[3,2].plot(cum_load5)
+ax[3,2].set_xlabel("Time (min)")
 plt.show()
