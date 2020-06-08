@@ -227,8 +227,8 @@ class Link_Quality:
         Ss  = specific gravity of sediment (for soil usually between 2.65-2.80)
         d50 = mean sediment particle diameter (SI or US: mm)
         d   = depth (SI: m, US: ft)
-        qs = sediment discharge per unit width (SI: kg/m-s, US: lb/ft-s)
-        Qs = sediment discharge (SI: kg/s, US: lb/s)
+        qs  = sediment discharge per unit width (SI: kg/m-s, US: lb/ft-s)
+        Qs  = sediment discharge (SI: kg/s, US: lb/s)
         """
         # Get current time
         current_step = self.sim.current_time
