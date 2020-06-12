@@ -281,3 +281,81 @@ class Link_Quality:
                         # Set new concentration
                         self.sim._model.setLinkPollutant(link, pollutant, Cnew)
 
+    def Erosion_and_Settling(self):
+        """
+        ENGELUND-HANSEN EROSION (1967)
+        Engelund and Hansen (1967) developed a procedure for predicting stage-
+        discharge relationships and sediment transport in alluvial streams.
+
+        Dictionary format: 
+        dict = {'SWMM_Link_ID1': {pindex1: [w, So, Ss, d50, k, C_s], pindex2: [w, So, Ss, d50, k, C_s]},
+                'SWMM_Link_ID2': {pindex1: [w, So, Ss, d50, k, C_s], pindex2: [w, So, Ss, d50, k, C_s]}}
+        
+        w   = channel width (SI: m, US: ft)
+        So  = bottom slope (SI: m/m, US: ft/ft)
+        Ss  = specific gravity of sediment (for soil usually between 2.65-2.80)
+        d50 = mean sediment particle diameter (SI or US: mm)
+        d   = depth (SI: m, US: ft)
+        qs  = sediment discharge per unit width (SI: kg/m-s, US: lb/ft-s)
+        Qs  = sediment discharge (SI: kg/s, US: lb/s)
+        k   = reaction rate constant (SI: m/hr, US: ft/hr)
+        C_s = constant residual concentration that always remains (SI or US: mg/L)
+        """
+        # Get current time
+        current_step = self.sim.current_time
+        # Calculate model dt in seconds
+        dt = (current_step - self.last_timestep).total_seconds()
+        # Updating reference step
+        self.last_timestep = current_step
+
+        for link in self.link_dict:
+            for pollutant in self.link_dict[link]:
+                Cin = self.sim._model.getLinkC2(link,pollutant)
+                Q = self.sim._model.getLinkResult(link,0)
+                d = self.sim._model.getLinkResult(link,1)
+                v = self.sim._model.getConduitVelocity(link)
+                w = self.link_dict[link][pollutant][0]
+                So = self.link_dict[link][pollutant][1]
+                Ss = self.link_dict[link][pollutant][2]
+                d50 = self.link_dict[link][pollutant][3]
+                k = self.link_dict[link][pollutant][4]
+                C_s = self.link_dict[link][pollutant][5]
+                
+                #Calculate erosion
+                if self.sim._model.getSimUnit(0) == "US":
+                    g = 32.2    # ft/s^2
+                    yw = 62.4   # lb/ft^3
+                    theta = (d*So/((Ss-1)*d50))*(1/0.00328) # unitless
+                    if v != 0.0:
+                        f = (2*g*So*d)/v**2     # unitless
+                        qs = 0.1*(1/f)*theta**(5/2)*yw*((Ss-1)*g*(d50*0.00328)**3)**(1/2) # lb/ft-s
+                        Qs = w*qs   # lb/s
+                    else:
+                        Qs = 0.0
+                    if Q !=0.0:
+                        Cnew = (Qs/Q)*(453592/28.3168)   # mg/L
+                        Cnew = max(Cin, Cin+Cnew)
+                        # Set new concentration
+                        self.sim._model.setLinkPollutant(link, pollutant, Cnew)
+
+                else:
+                    g = 9.81    # m/s^2
+                    yw = 1000   # kg/m^3
+                    theta = (d*So/((Ss-1)*d50))*(1/0.001)   # unitless
+                    if v != 0.0:
+                        f = (2*g*So*d)/(v*0.305)**2     # unitless
+                        qs = 0.1*(1/f)*theta**(5/2)*yw*((Ss-1)*g*(d50*0.001)**3)**(1/2) # kg/m-s
+                        Qs = w*qs   # kg/s
+                    else:
+                        Qs = 0.0
+                    if Q != 0.0:
+                        Cnew = ((Qs/Q)*1000)  # mg/L
+                        Cnew = max(Cin, Cin+Cnew)
+                #Calculate gravity settling  
+                if d != 0.0:
+                    # Calculate new concentration
+                    Cnew1 = np.heaviside((0.1-Q),0)*(C_s+(Cnew-C_s)*np.exp(-k/d*dt/3600))+(1-np.heaviside((0.1-Q),0))*Cnew
+                else:
+                    Cnew1 = np.heaviside((0.1-Q),0)*C_s+(Cnew-C_s)+(1-np.heaviside((0.1-Q),0))*Cnew
+                # Set new concentration
+                self.sim._model.setLinkPollutant(link, pollutant, Cnew1)
