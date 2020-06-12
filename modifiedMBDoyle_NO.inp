@@ -1,8 +1,7 @@
 [TITLE]
 ;;Project Title/Notes
 Ellsworth Pond to Mary Beth Doyle Wetland Storm Water Model
-10% AEP 12-Hour Design Storm (SCS/Alternating Block Distribution)
-Last Updated 5/20/2020
+Last Updated 6/11/2020
 
 [OPTIONS]
 ;;Option             Value
@@ -21,7 +20,7 @@ START_DATE           07/01/2014
 START_TIME           00:00:00
 REPORT_START_DATE    07/01/2014
 REPORT_START_TIME    00:00:00
-END_DATE             07/06/2014
+END_DATE             07/12/2014
 END_TIME             00:00:00
 SWEEP_START          01/01
 SWEEP_END            12/31
@@ -54,20 +53,20 @@ DRY_ONLY         NO
 [RAINGAGES]
 ;;Name           Format    Interval SCF      Source    
 ;;-------------- --------- ------ ------ ----------
-R9167            VOLUME    0.083333 1.000000 TIMESERIES DESIGN_10YR12HR_ALT
+R9167            CUMULATIVE 0:15     1.0     TIMESERIES 5YR_12HR
 
 [SUBCATCHMENTS]
 ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
 ;;-------------- ---------------- ---------------- -------- -------- -------- -------- -------- ----------------
-EllsworthSubcatch R9167            93-50408         1500     75       1000     2        0                        
-WetlandSubcatch  R9167            93-49759         210      50       100      1        0                        
-BasinSubcatch    R9167            93-50404         210      50       100      2        0                        
+EllsworthSubcatch R9167            93-50408         1300     56       500      0.5       0                        
+WetlandSubcatch  R9167            93-49759         310      51       50       0.75       0                        
+BasinSubcatch    R9167            93-50404         310      38       50       2        0                        
 
 [SUBAREAS]
 ;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted 
 ;;-------------- ---------- ---------- ---------- ---------- ---------- ---------- ----------
 EllsworthSubcatch 0.01       0.1        0.05       0.05       25         OUTLET    
-WetlandSubcatch  0.01       0.1        0.05       0.05       24         OUTLET    
+WetlandSubcatch  0.01       0.1        0.05       0.05       25         OUTLET    
 BasinSubcatch    0.01       0.1        0.05       0.05       25         OUTLET    
 
 [INFILTRATION]
@@ -139,9 +138,9 @@ BasinSubcatch    3.0        0.5        4
 ;Doyle Park
 93-49759         797.000000 9.000000   1.000000   TABULAR    DOYLE_2                      0.0      1.000000
 ;Doyle Park (Pond adjacent to dam)
-93-50404         796.000000 20.000000  4.000000   TABULAR    DOYLE_1                      0.0      1.000000
+93-50404         796.000000 20.000000  0.000000   TABULAR    DOYLE_1                      0.0      1.000000
 ;Malletts Creek Retention Basin 2
-93-50408         808.5    20.000000  5.000000   TABULAR    93-50408                     0.0      1.000000
+93-50408         808.5    20.000000  0.000000   TABULAR    93-50408                     0.0      1.000000
 
 [CONDUITS]
 ;;Name           From Node        To Node          Length     Roughness  InOffset   OutOffset  InitFlow   MaxFlow   
@@ -179,7 +178,7 @@ O_95-70750       91-52015         91-52018         55.000000  0.030000   12.0000
 ;;Name           From Node        To Node          Type         Offset     Qcoeff     Gated    CloseTime 
 ;;-------------- ---------------- ---------------- ------------ ---------- ---------- -------- ----------
 95-70951         93-50408         91-51131         SIDE         0.25       0.65       NO       0         
-95-70293         91-51015         97-50402         SIDE         0          0.65       NO       0         
+95-70293         91-51015         97-50402         SIDE         0.0        0.65       NO       0         
 
 [WEIRS]
 ;;Name           From Node        To Node          Type         CrestHt    Qcoeff     Gated    EndCon   EndCoeff   Surcharge  RoadWidth  RoadSurf   Coeff. Curve
@@ -362,7 +361,7 @@ General          NO               NONE       0.0        0.0        0.0        AR
 [WASHOFF]
 ;;Land Use       Pollutant        Function   Coeff1     Coeff2     SweepRmvl  BmpRmvl   
 ;;-------------- ---------------- ---------- ---------- ---------- ---------- ----------
-General          NO               EMC        1.0       0.0        0.0        0.0       
+General          NO               EMC        10.0       0.0        0.0        0.0       
 
 [DWF]
 ;;Node           Constituent      Baseline   Patterns  
@@ -372,15 +371,15 @@ General          NO               EMC        1.0       0.0        0.0        0.0
 [CURVES]
 ;;Name           Type       X-Value    Y-Value   
 ;;-------------- ---------- ---------- ----------
-93-50408         STORAGE    0.000000   122130.000000
-93-50408                    2.000000   148616.000000
+93-50408         STORAGE    0.000000   142130.000000
+93-50408                    2.000000   168616.000000
 93-50408                    4.000000   163248.000000
-93-50408                    7.000000   183623.000000
-93-50408                    10.000000  212466.000000
-93-50408                    20.000000  212466.000000
+93-50408                    8.000000   203623.000000
+93-50408                    10.000000  342466.000000
+93-50408                    20.000000  342466.000000
 ;
-DOYLE_1          STORAGE    0.000000   7400.000000
-DOYLE_1                     2.000000   39800.000000
+DOYLE_1          STORAGE    0.000000   50800.000000
+DOYLE_1                     2.000000   50800.000000
 DOYLE_1                     4.000000   91000.000000
 DOYLE_1                     5.000000   93300.000000
 DOYLE_1                     6.000000   99300.000000
@@ -395,12 +394,12 @@ DOYLE_2                     4.000000   229650.000000
 DOYLE_2                     5.000000   245660.000000
 DOYLE_2                     8.000000   286400.000000
 DOYLE_2                     8.010000   348700.000000
-DOYLE_2                     9.000000   369280.000000
+DOYLE_2                     10.000000   369280.000000
 
 [TIMESERIES]
 ;;Name           Date       Time       Value     
 ;;-------------- ---------- ---------- ----------
-;10yr-12hr rainfall 2.9 inch alternating block distribution
+;10yr-12hr rainfall alternating block distribution
 DESIGN_10YR12HR_ALT            36:00:00   0.000000  
 DESIGN_10YR12HR_ALT            36:05:00   0.004000  
 DESIGN_10YR12HR_ALT            36:10:00   0.004000  
@@ -548,9 +547,496 @@ DESIGN_10YR12HR_ALT            47:55:00   0.004000
 DESIGN_10YR12HR_ALT            48:00:00   0.004000  
 DESIGN_10YR12HR_ALT            48:05:00   0.000000  
 ;
-DESIGN_10YR24HR_ALT            07:00      0.1       
+;50% of 10yr-12hr rainfall alternating block distribution
+DESIGN_10YR12HR_AL2            36:00:00   0.000000  
+DESIGN_10YR12HR_AL2            36:05:00   0.002000  
+DESIGN_10YR12HR_AL2            36:10:00   0.002000  
+DESIGN_10YR12HR_AL2            36:15:00   0.002000  
+DESIGN_10YR12HR_AL2            36:20:00   0.002000  
+DESIGN_10YR12HR_AL2            36:25:00   0.002000  
+DESIGN_10YR12HR_AL2            36:30:00   0.002000  
+DESIGN_10YR12HR_AL2            36:35:00   0.002000  
+DESIGN_10YR12HR_AL2            36:40:00   0.002000  
+DESIGN_10YR12HR_AL2            36:45:00   0.002000  
+DESIGN_10YR12HR_AL2            36:50:00   0.002000  
+DESIGN_10YR12HR_AL2            36:55:00   0.002000  
+DESIGN_10YR12HR_AL2            37:00:00   0.002000  
+DESIGN_10YR12HR_AL2            37:05:00   0.002000  
+DESIGN_10YR12HR_AL2            37:10:00   0.002000  
+DESIGN_10YR12HR_AL2            37:15:00   0.002000  
+DESIGN_10YR12HR_AL2            37:20:00   0.002000  
+DESIGN_10YR12HR_AL2            37:25:00   0.002000  
+DESIGN_10YR12HR_AL2            37:30:00   0.002000  
+DESIGN_10YR12HR_AL2            37:35:00   0.002000  
+DESIGN_10YR12HR_AL2            37:40:00   0.002000  
+DESIGN_10YR12HR_AL2            37:45:00   0.002000  
+DESIGN_10YR12HR_AL2            37:50:00   0.002000  
+DESIGN_10YR12HR_AL2            37:55:00   0.002000
+DESIGN_10YR12HR_AL2            38:00:00   0.002000  
+DESIGN_10YR12HR_AL2            38:05:00   0.002000  
+DESIGN_10YR12HR_AL2            38:10:00   0.002000  
+DESIGN_10YR12HR_AL2            38:15:00   0.002000  
+DESIGN_10YR12HR_AL2            38:20:00   0.002000  
+DESIGN_10YR12HR_AL2            38:25:00   0.002000  
+DESIGN_10YR12HR_AL2            38:30:00   0.002000  
+DESIGN_10YR12HR_AL2            38:35:00   0.002000  
+DESIGN_10YR12HR_AL2            38:40:00   0.002000  
+DESIGN_10YR12HR_AL2            38:45:00   0.002000  
+DESIGN_10YR12HR_AL2            38:50:00   0.002000  
+DESIGN_10YR12HR_AL2            38:55:00   0.002000  
+DESIGN_10YR12HR_AL2            39:00:00   0.002000  
+DESIGN_10YR12HR_AL2            39:05:00   0.004500  
+DESIGN_10YR12HR_AL2            39:10:00   0.004500  
+DESIGN_10YR12HR_AL2            39:15:00   0.004500  
+DESIGN_10YR12HR_AL2            39:20:00   0.004500  
+DESIGN_10YR12HR_AL2            39:25:00   0.004500  
+DESIGN_10YR12HR_AL2            39:30:00   0.004500  
+DESIGN_10YR12HR_AL2            39:35:00   0.004500  
+DESIGN_10YR12HR_AL2            39:40:00   0.004500  
+DESIGN_10YR12HR_AL2            39:45:00   0.004500  
+DESIGN_10YR12HR_AL2            39:50:00   0.004500  
+DESIGN_10YR12HR_AL2            39:55:00   0.004500  
+DESIGN_10YR12HR_AL2            40:00:00   0.004500  
+DESIGN_10YR12HR_AL2            40:05:00   0.004500  
+DESIGN_10YR12HR_AL2            40:10:00   0.004500  
+DESIGN_10YR12HR_AL2            40:15:00   0.004500  
+DESIGN_10YR12HR_AL2            40:20:00   0.004500  
+DESIGN_10YR12HR_AL2            40:25:00   0.004500  
+DESIGN_10YR12HR_AL2            40:30:00   0.004500  
+DESIGN_10YR12HR_AL2            40:35:00   0.009000  
+DESIGN_10YR12HR_AL2            40:40:00   0.009000  
+DESIGN_10YR12HR_AL2            40:45:00   0.009000  
+DESIGN_10YR12HR_AL2            40:50:00   0.009000  
+DESIGN_10YR12HR_AL2            40:55:00   0.009000  
+DESIGN_10YR12HR_AL2            41:00:00   0.009000  
+DESIGN_10YR12HR_AL2            41:05:00   0.015500  
+DESIGN_10YR12HR_AL2            41:10:00   0.015500  
+DESIGN_10YR12HR_AL2            41:15:00   0.015500  
+DESIGN_10YR12HR_AL2            41:20:00   0.015500  
+DESIGN_10YR12HR_AL2            41:25:00   0.015500  
+DESIGN_10YR12HR_AL2            41:30:00   0.015500  
+DESIGN_10YR12HR_AL2            41:35:00   0.031000  
+DESIGN_10YR12HR_AL2            41:40:00   0.031000  
+DESIGN_10YR12HR_AL2            41:45:00   0.031000  
+DESIGN_10YR12HR_AL2            41:50:00   0.114000  
+DESIGN_10YR12HR_AL2            41:55:00   0.089000  
+DESIGN_10YR12HR_AL2            42:00:00   0.227000  
+DESIGN_10YR12HR_AL2            42:05:00   0.128500  
+DESIGN_10YR12HR_AL2            42:10:00   0.057000  
+DESIGN_10YR12HR_AL2            42:15:00   0.057000  
+DESIGN_10YR12HR_AL2            42:20:00   0.031000  
+DESIGN_10YR12HR_AL2            42:25:00   0.031000  
+DESIGN_10YR12HR_AL2            42:30:00   0.031000  
+DESIGN_10YR12HR_AL2            42:35:00   0.015500  
+DESIGN_10YR12HR_AL2            42:40:00   0.015500  
+DESIGN_10YR12HR_AL2            42:45:00   0.015500  
+DESIGN_10YR12HR_AL2            42:50:00   0.015500  
+DESIGN_10YR12HR_AL2            42:55:00   0.015500  
+DESIGN_10YR12HR_AL2            43:00:00   0.015500  
+DESIGN_10YR12HR_AL2            43:05:00   0.009000  
+DESIGN_10YR12HR_AL2            43:10:00   0.009000  
+DESIGN_10YR12HR_AL2            43:15:00   0.009000  
+DESIGN_10YR12HR_AL2            43:20:00   0.009000  
+DESIGN_10YR12HR_AL2            43:25:00   0.009000  
+DESIGN_10YR12HR_AL2            43:30:00   0.009000  
+DESIGN_10YR12HR_AL2            43:35:00   0.004500  
+DESIGN_10YR12HR_AL2            43:40:00   0.004500  
+DESIGN_10YR12HR_AL2            43:45:00   0.004500  
+DESIGN_10YR12HR_AL2            43:50:00   0.004500  
+DESIGN_10YR12HR_AL2            43:55:00   0.004500  
+DESIGN_10YR12HR_AL2            44:00:00   0.004500  
+DESIGN_10YR12HR_AL2            44:05:00   0.004500  
+DESIGN_10YR12HR_AL2            44:10:00   0.004500  
+DESIGN_10YR12HR_AL2            44:15:00   0.004500  
+DESIGN_10YR12HR_AL2            44:20:00   0.004500  
+DESIGN_10YR12HR_AL2            44:25:00   0.004500  
+DESIGN_10YR12HR_AL2            44:30:00   0.004500  
+DESIGN_10YR12HR_AL2            44:35:00   0.004500  
+DESIGN_10YR12HR_AL2            44:40:00   0.004500  
+DESIGN_10YR12HR_AL2            44:45:00   0.004500  
+DESIGN_10YR12HR_AL2            44:50:00   0.004500  
+DESIGN_10YR12HR_AL2            44:55:00   0.004500  
+DESIGN_10YR12HR_AL2            45:00:00   0.004500  
+DESIGN_10YR12HR_AL2            45:05:00   0.002000  
+DESIGN_10YR12HR_AL2            45:10:00   0.002000  
+DESIGN_10YR12HR_AL2            45:15:00   0.002000  
+DESIGN_10YR12HR_AL2            45:20:00   0.002000  
+DESIGN_10YR12HR_AL2            45:25:00   0.002000  
+DESIGN_10YR12HR_AL2            45:30:00   0.002000  
+DESIGN_10YR12HR_AL2            45:35:00   0.002000  
+DESIGN_10YR12HR_AL2            45:40:00   0.002000  
+DESIGN_10YR12HR_AL2            45:45:00   0.002000  
+DESIGN_10YR12HR_AL2            45:50:00   0.002000  
+DESIGN_10YR12HR_AL2            45:55:00   0.002000  
+DESIGN_10YR12HR_AL2            46:00:00   0.002000  
+DESIGN_10YR12HR_AL2            46:05:00   0.002000  
+DESIGN_10YR12HR_AL2            46:10:00   0.002000  
+DESIGN_10YR12HR_AL2            46:15:00   0.002000  
+DESIGN_10YR12HR_AL2            46:20:00   0.002000  
+DESIGN_10YR12HR_AL2            46:25:00   0.002000  
+DESIGN_10YR12HR_AL2            46:30:00   0.002000  
+DESIGN_10YR12HR_AL2            46:35:00   0.002000  
+DESIGN_10YR12HR_AL2            46:40:00   0.002000  
+DESIGN_10YR12HR_AL2            46:45:00   0.002000  
+DESIGN_10YR12HR_AL2            46:50:00   0.002000  
+DESIGN_10YR12HR_AL2            46:55:00   0.002000  
+DESIGN_10YR12HR_AL2            47:00:00   0.002000  
+DESIGN_10YR12HR_AL2            47:05:00   0.002000  
+DESIGN_10YR12HR_AL2            47:10:00   0.002000  
+DESIGN_10YR12HR_AL2            47:15:00   0.002000  
+DESIGN_10YR12HR_AL2            47:20:00   0.002000  
+DESIGN_10YR12HR_AL2            47:25:00   0.002000  
+DESIGN_10YR12HR_AL2            47:30:00   0.002000  
+DESIGN_10YR12HR_AL2            47:35:00   0.002000  
+DESIGN_10YR12HR_AL2            47:40:00   0.002000  
+DESIGN_10YR12HR_AL2            47:45:00   0.002000  
+DESIGN_10YR12HR_AL2            47:50:00   0.002000  
+DESIGN_10YR12HR_AL2            47:55:00   0.002000  
+DESIGN_10YR12HR_AL2            48:00:00   0.002000  
+DESIGN_10YR12HR_AL2            48:05:00   0.000000  
+; 
+;10yr-24hr rainfall 2.9 inch alternating block distribution
+DESIGN_10YR24HR_ALT	          	12:00:00  	0.000000
+DESIGN_10YR24HR_ALT	          	12:05:00  	0.002744
+DESIGN_10YR24HR_ALT	          	12:10:00  	0.002739
+DESIGN_10YR24HR_ALT	          	12:15:00  	0.002777
+DESIGN_10YR24HR_ALT	          	12:20:00  	0.002800
+DESIGN_10YR24HR_ALT	          	12:25:00  	0.002808
+DESIGN_10YR24HR_ALT	          	12:30:00  	0.002856
+DESIGN_10YR24HR_ALT	          	12:35:00  	0.002849
+DESIGN_10YR24HR_ALT	          	12:40:00  	0.002897
+DESIGN_10YR24HR_ALT	          	12:45:00  	0.002905
+DESIGN_10YR24HR_ALT	          	12:50:00  	0.002928
+DESIGN_10YR24HR_ALT	          	12:55:00  	0.002965
+DESIGN_10YR24HR_ALT	          	13:00:00  	0.002962
+DESIGN_10YR24HR_ALT	          	13:05:00  	0.003015
+DESIGN_10YR24HR_ALT	          	13:10:00  	0.003011
+DESIGN_10YR24HR_ALT	          	13:15:00  	0.003049
+DESIGN_10YR24HR_ALT	          	13:20:00  	0.003072
+DESIGN_10YR24HR_ALT	          	13:25:00  	0.003079
+DESIGN_10YR24HR_ALT	          	13:30:00  	0.003128
+DESIGN_10YR24HR_ALT	          	13:35:00  	0.003120
+DESIGN_10YR24HR_ALT	          	13:40:00  	0.003169
+DESIGN_10YR24HR_ALT	          	13:45:00  	0.003177
+DESIGN_10YR24HR_ALT	          	13:50:00  	0.003199
+DESIGN_10YR24HR_ALT	          	13:55:00  	0.003237
+DESIGN_10YR24HR_ALT	          	14:00:00  	0.003234
+DESIGN_10YR24HR_ALT	          	14:05:00  	0.003286
+DESIGN_10YR24HR_ALT	          	14:10:00  	0.003283
+DESIGN_10YR24HR_ALT	          	14:15:00  	0.003320
+DESIGN_10YR24HR_ALT	          	14:20:00  	0.003343
+DESIGN_10YR24HR_ALT	          	14:25:00  	0.003351
+DESIGN_10YR24HR_ALT	          	14:30:00  	0.003400
+DESIGN_10YR24HR_ALT	          	14:35:00  	0.003392
+DESIGN_10YR24HR_ALT	          	14:40:00  	0.003441
+DESIGN_10YR24HR_ALT	          	14:45:00  	0.003449
+DESIGN_10YR24HR_ALT	          	14:50:00  	0.003471
+DESIGN_10YR24HR_ALT	          	14:55:00  	0.003509
+DESIGN_10YR24HR_ALT	          	15:00:00  	0.003505
+DESIGN_10YR24HR_ALT	          	15:05:00  	0.003558
+DESIGN_10YR24HR_ALT	          	15:10:00  	0.003555
+DESIGN_10YR24HR_ALT	          	15:15:00  	0.003592
+DESIGN_10YR24HR_ALT	          	15:20:00  	0.003615
+DESIGN_10YR24HR_ALT	          	15:25:00  	0.003623
+DESIGN_10YR24HR_ALT	          	15:30:00  	0.003671
+DESIGN_10YR24HR_ALT	          	15:35:00  	0.003664
+DESIGN_10YR24HR_ALT	          	15:40:00  	0.003712
+DESIGN_10YR24HR_ALT	          	15:45:00  	0.003720
+DESIGN_10YR24HR_ALT	          	15:50:00  	0.003743
+DESIGN_10YR24HR_ALT	          	15:55:00  	0.003780
+DESIGN_10YR24HR_ALT	          	16:00:00  	0.003777
+DESIGN_10YR24HR_ALT	          	16:05:00  	0.003826
+DESIGN_10YR24HR_ALT	          	16:10:00  	0.003871
+DESIGN_10YR24HR_ALT	          	16:15:00  	0.003917
+DESIGN_10YR24HR_ALT	          	16:20:00  	0.003962
+DESIGN_10YR24HR_ALT	          	16:25:00  	0.004007
+DESIGN_10YR24HR_ALT	          	16:30:00  	0.004052
+DESIGN_10YR24HR_ALT	          	16:35:00  	0.004098
+DESIGN_10YR24HR_ALT	          	16:40:00  	0.004143
+DESIGN_10YR24HR_ALT	          	16:45:00  	0.004188
+DESIGN_10YR24HR_ALT	          	16:50:00  	0.004233
+DESIGN_10YR24HR_ALT	          	16:55:00  	0.004279
+DESIGN_10YR24HR_ALT	          	17:00:00  	0.004324
+DESIGN_10YR24HR_ALT	          	17:05:00  	0.004369
+DESIGN_10YR24HR_ALT	          	17:10:00  	0.004415
+DESIGN_10YR24HR_ALT	          	17:15:00  	0.004460
+DESIGN_10YR24HR_ALT	          	17:20:00  	0.004505
+DESIGN_10YR24HR_ALT	          	17:25:00  	0.004550
+DESIGN_10YR24HR_ALT	          	17:30:00  	0.004596
+DESIGN_10YR24HR_ALT	          	17:35:00  	0.004641
+DESIGN_10YR24HR_ALT	          	17:40:00  	0.004686
+DESIGN_10YR24HR_ALT	          	17:45:00  	0.004732
+DESIGN_10YR24HR_ALT	          	17:50:00  	0.004777
+DESIGN_10YR24HR_ALT	          	17:55:00  	0.004822
+DESIGN_10YR24HR_ALT	          	18:00:00  	0.004867
+DESIGN_10YR24HR_ALT	          	18:05:00  	0.004913
+DESIGN_10YR24HR_ALT	          	18:10:00  	0.004958
+DESIGN_10YR24HR_ALT	          	18:15:00  	0.005003
+DESIGN_10YR24HR_ALT	          	18:20:00  	0.005048
+DESIGN_10YR24HR_ALT	          	18:25:00  	0.005094
+DESIGN_10YR24HR_ALT	          	18:30:00  	0.005139
+DESIGN_10YR24HR_ALT	          	18:35:00  	0.005184
+DESIGN_10YR24HR_ALT	          	18:40:00  	0.005230
+DESIGN_10YR24HR_ALT	          	18:45:00  	0.005275
+DESIGN_10YR24HR_ALT	          	18:50:00  	0.005320
+DESIGN_10YR24HR_ALT	          	18:55:00  	0.005365
+DESIGN_10YR24HR_ALT	          	19:00:00  	0.005411
+DESIGN_10YR24HR_ALT	          	19:05:00  	0.005456
+DESIGN_10YR24HR_ALT	          	19:10:00  	0.005501
+DESIGN_10YR24HR_ALT	          	19:15:00  	0.005547
+DESIGN_10YR24HR_ALT	          	19:20:00  	0.005592
+DESIGN_10YR24HR_ALT	          	19:25:00  	0.005637
+DESIGN_10YR24HR_ALT	          	19:30:00  	0.005682
+DESIGN_10YR24HR_ALT	          	19:35:00  	0.005728
+DESIGN_10YR24HR_ALT	          	19:40:00  	0.005773
+DESIGN_10YR24HR_ALT	          	19:45:00  	0.005818
+DESIGN_10YR24HR_ALT	          	19:50:00  	0.005863
+DESIGN_10YR24HR_ALT	          	19:55:00  	0.005907
+DESIGN_10YR24HR_ALT	          	20:00:00  	0.005956
+DESIGN_10YR24HR_ALT	          	20:05:00  	0.006092
+DESIGN_10YR24HR_ALT	          	20:10:00  	0.006315
+DESIGN_10YR24HR_ALT	          	20:15:00  	0.006542
+DESIGN_10YR24HR_ALT	          	20:20:00  	0.006769
+DESIGN_10YR24HR_ALT	          	20:25:00  	0.006995
+DESIGN_10YR24HR_ALT	          	20:30:00  	0.007222
+DESIGN_10YR24HR_ALT	          	20:35:00  	0.007448
+DESIGN_10YR24HR_ALT	          	20:40:00  	0.007675
+DESIGN_10YR24HR_ALT	          	20:45:00  	0.007901
+DESIGN_10YR24HR_ALT	          	20:50:00  	0.008127
+DESIGN_10YR24HR_ALT	          	20:55:00  	0.008356
+DESIGN_10YR24HR_ALT	          	21:00:00  	0.008579
+DESIGN_10YR24HR_ALT	          	21:05:00  	0.008691
+DESIGN_10YR24HR_ALT	          	21:10:00  	0.008695
+DESIGN_10YR24HR_ALT	          	21:15:00  	0.008693
+DESIGN_10YR24HR_ALT	          	21:20:00  	0.008693
+DESIGN_10YR24HR_ALT	          	21:25:00  	0.008690
+DESIGN_10YR24HR_ALT	          	21:30:00  	0.008696
+DESIGN_10YR24HR_ALT	          	21:35:00  	0.008878
+DESIGN_10YR24HR_ALT	          	21:40:00  	0.009233
+DESIGN_10YR24HR_ALT	          	21:45:00  	0.009598
+DESIGN_10YR24HR_ALT	          	21:50:00  	0.009961
+DESIGN_10YR24HR_ALT	          	21:55:00  	0.010322
+DESIGN_10YR24HR_ALT	          	22:00:00  	0.010688
+DESIGN_10YR24HR_ALT	          	22:05:00  	0.011141
+DESIGN_10YR24HR_ALT	          	22:10:00  	0.011680
+DESIGN_10YR24HR_ALT	          	22:15:00  	0.012224
+DESIGN_10YR24HR_ALT	          	22:20:00  	0.012768
+DESIGN_10YR24HR_ALT	          	22:25:00  	0.013309
+DESIGN_10YR24HR_ALT	          	22:30:00  	0.013859
+DESIGN_10YR24HR_ALT	          	22:35:00  	0.014585
+DESIGN_10YR24HR_ALT	          	22:40:00  	0.015481
+DESIGN_10YR24HR_ALT	          	22:45:00  	0.016389
+DESIGN_10YR24HR_ALT	          	22:50:00  	0.017295
+DESIGN_10YR24HR_ALT	          	22:55:00  	0.018192
+DESIGN_10YR24HR_ALT	          	23:00:00  	0.019119
+DESIGN_10YR24HR_ALT	          	23:05:00  	0.020667
+DESIGN_10YR24HR_ALT	          	23:10:00  	0.022805
+DESIGN_10YR24HR_ALT	          	23:15:00  	0.024987
+DESIGN_10YR24HR_ALT	          	23:20:00  	0.027162
+DESIGN_10YR24HR_ALT	          	23:25:00  	0.029071
+DESIGN_10YR24HR_ALT	          	23:30:00  	0.031788
+DESIGN_10YR24HR_ALT	          	23:35:00  	0.061154
+DESIGN_10YR24HR_ALT	          	23:40:00  	0.110681
+DESIGN_10YR24HR_ALT	          	23:45:00  	0.169270
+DESIGN_10YR24HR_ALT	          	23:50:00  	0.276815
+DESIGN_10YR24HR_ALT	          	23:55:00  	0.373693
+DESIGN_10YR24HR_ALT	          	24:00:00  	0.247188
+DESIGN_10YR24HR_ALT	          	24:05:00  	0.052921
+DESIGN_10YR24HR_ALT	          	24:10:00  	0.045989
+DESIGN_10YR24HR_ALT	          	24:15:00  	0.041684
+DESIGN_10YR24HR_ALT	          	24:20:00  	0.036515
+DESIGN_10YR24HR_ALT	          	24:25:00  	0.031322
+DESIGN_10YR24HR_ALT	          	24:30:00  	0.026290
+DESIGN_10YR24HR_ALT	          	24:35:00  	0.023079
+DESIGN_10YR24HR_ALT	          	24:40:00  	0.021839
+DESIGN_10YR24HR_ALT	          	24:45:00  	0.020690
+DESIGN_10YR24HR_ALT	          	24:50:00  	0.019512
+DESIGN_10YR24HR_ALT	          	24:55:00  	0.018332
+DESIGN_10YR24HR_ALT	          	25:00:00  	0.017168
+DESIGN_10YR24HR_ALT	          	25:05:00  	0.016260
+DESIGN_10YR24HR_ALT	          	25:10:00  	0.015616
+DESIGN_10YR24HR_ALT	          	25:15:00  	0.014986
+DESIGN_10YR24HR_ALT	          	25:20:00  	0.014352
+DESIGN_10YR24HR_ALT	          	25:25:00  	0.013717
+DESIGN_10YR24HR_ALT	          	25:30:00  	0.013088
+DESIGN_10YR24HR_ALT	          	25:35:00  	0.012544
+DESIGN_10YR24HR_ALT	          	25:40:00  	0.012088
+DESIGN_10YR24HR_ALT	          	25:45:00  	0.011636
+DESIGN_10YR24HR_ALT	          	25:50:00  	0.011183
+DESIGN_10YR24HR_ALT	          	25:55:00  	0.010728
+DESIGN_10YR24HR_ALT	          	26:00:00  	0.010282
+DESIGN_10YR24HR_ALT	          	26:05:00  	0.009990
+DESIGN_10YR24HR_ALT	          	26:10:00  	0.009800
+DESIGN_10YR24HR_ALT	          	26:15:00  	0.009659
+DESIGN_10YR24HR_ALT	          	26:20:00  	0.009501
+DESIGN_10YR24HR_ALT	          	26:25:00  	0.009328
+DESIGN_10YR24HR_ALT	          	26:30:00  	0.009195
+DESIGN_10YR24HR_ALT	          	26:35:00  	0.009007
+DESIGN_10YR24HR_ALT	          	26:40:00  	0.008874
+DESIGN_10YR24HR_ALT	          	26:45:00  	0.008700
+DESIGN_10YR24HR_ALT	          	26:50:00  	0.008542
+DESIGN_10YR24HR_ALT	          	26:55:00  	0.008398
+DESIGN_10YR24HR_ALT	          	27:00:00  	0.008214
+DESIGN_10YR24HR_ALT	          	27:05:00  	0.008086
+DESIGN_10YR24HR_ALT	          	27:10:00  	0.007901
+DESIGN_10YR24HR_ALT	          	27:15:00  	0.007758
+DESIGN_10YR24HR_ALT	          	27:20:00  	0.007599
+DESIGN_10YR24HR_ALT	          	27:25:00  	0.007426
+DESIGN_10YR24HR_ALT	          	27:30:00  	0.007294
+DESIGN_10YR24HR_ALT	          	27:35:00  	0.007105
+DESIGN_10YR24HR_ALT	          	27:40:00  	0.006972
+DESIGN_10YR24HR_ALT	          	27:45:00  	0.006799
+DESIGN_10YR24HR_ALT	          	27:50:00  	0.006641
+DESIGN_10YR24HR_ALT	          	27:55:00  	0.006496
+DESIGN_10YR24HR_ALT	          	28:00:00  	0.006313
+DESIGN_10YR24HR_ALT	          	28:05:00  	0.006228
+DESIGN_10YR24HR_ALT	          	28:10:00  	0.006157
+DESIGN_10YR24HR_ALT	          	28:15:00  	0.006109
+DESIGN_10YR24HR_ALT	          	28:20:00  	0.006052
+DESIGN_10YR24HR_ALT	          	28:25:00  	0.005988
+DESIGN_10YR24HR_ALT	          	28:30:00  	0.005945
+DESIGN_10YR24HR_ALT	          	28:35:00  	0.005873
+DESIGN_10YR24HR_ALT	          	28:40:00  	0.005829
+DESIGN_10YR24HR_ALT	          	28:45:00  	0.005765
+DESIGN_10YR24HR_ALT	          	28:50:00  	0.005709
+DESIGN_10YR24HR_ALT	          	28:55:00  	0.005659
+DESIGN_10YR24HR_ALT	          	29:00:00  	0.005590
+DESIGN_10YR24HR_ALT	          	29:05:00  	0.005548
+DESIGN_10YR24HR_ALT	          	29:10:00  	0.005479
+DESIGN_10YR24HR_ALT	          	29:15:00  	0.005430
+DESIGN_10YR24HR_ALT	          	29:20:00  	0.005373
+DESIGN_10YR24HR_ALT	          	29:25:00  	0.005309
+DESIGN_10YR24HR_ALT	          	29:30:00  	0.005265
+DESIGN_10YR24HR_ALT	          	29:35:00  	0.005194
+DESIGN_10YR24HR_ALT	          	29:40:00  	0.005150
+DESIGN_10YR24HR_ALT	          	29:45:00  	0.005086
+DESIGN_10YR24HR_ALT	          	29:50:00  	0.005030
+DESIGN_10YR24HR_ALT	          	29:55:00  	0.004980
+DESIGN_10YR24HR_ALT	          	30:00:00  	0.004911
+DESIGN_10YR24HR_ALT	          	30:05:00  	0.004869
+DESIGN_10YR24HR_ALT	          	30:10:00  	0.004800
+DESIGN_10YR24HR_ALT	          	30:15:00  	0.004751
+DESIGN_10YR24HR_ALT	          	30:20:00  	0.004694
+DESIGN_10YR24HR_ALT	          	30:25:00  	0.004630
+DESIGN_10YR24HR_ALT	          	30:30:00  	0.004586
+DESIGN_10YR24HR_ALT	          	30:35:00  	0.004515
+DESIGN_10YR24HR_ALT	          	30:40:00  	0.004471
+DESIGN_10YR24HR_ALT	          	30:45:00  	0.004407
+DESIGN_10YR24HR_ALT	          	30:50:00  	0.004350
+DESIGN_10YR24HR_ALT	          	30:55:00  	0.004301
+DESIGN_10YR24HR_ALT	          	31:00:00  	0.004232
+DESIGN_10YR24HR_ALT	          	31:05:00  	0.004190
+DESIGN_10YR24HR_ALT	          	31:10:00  	0.004120
+DESIGN_10YR24HR_ALT	          	31:15:00  	0.004071
+DESIGN_10YR24HR_ALT	          	31:20:00  	0.004015
+DESIGN_10YR24HR_ALT	          	31:25:00  	0.003951
+DESIGN_10YR24HR_ALT	          	31:30:00  	0.003907
+DESIGN_10YR24HR_ALT	          	31:35:00  	0.003835
+DESIGN_10YR24HR_ALT	          	31:40:00  	0.003792
+DESIGN_10YR24HR_ALT	          	31:45:00  	0.003728
+DESIGN_10YR24HR_ALT	          	31:50:00  	0.003671
+DESIGN_10YR24HR_ALT	          	31:55:00  	0.003622
+DESIGN_10YR24HR_ALT	          	32:00:00  	0.003553
+DESIGN_10YR24HR_ALT	          	32:05:00  	0.003534
+DESIGN_10YR24HR_ALT	          	32:10:00  	0.003509
+DESIGN_10YR24HR_ALT	          	32:15:00  	0.003505
+DESIGN_10YR24HR_ALT	          	32:20:00  	0.003494
+DESIGN_10YR24HR_ALT	          	32:25:00  	0.003475
+DESIGN_10YR24HR_ALT	          	32:30:00  	0.003477
+DESIGN_10YR24HR_ALT	          	32:35:00  	0.003451
+DESIGN_10YR24HR_ALT	          	32:40:00  	0.003452
+DESIGN_10YR24HR_ALT	          	32:45:00  	0.003433
+DESIGN_10YR24HR_ALT	          	32:50:00  	0.003422
+DESIGN_10YR24HR_ALT	          	32:55:00  	0.003418
+DESIGN_10YR24HR_ALT	          	33:00:00  	0.003394
+DESIGN_10YR24HR_ALT	          	33:05:00  	0.003398
+DESIGN_10YR24HR_ALT	          	33:10:00  	0.003373
+DESIGN_10YR24HR_ALT	          	33:15:00  	0.003370
+DESIGN_10YR24HR_ALT	          	33:20:00  	0.003358
+DESIGN_10YR24HR_ALT	          	33:25:00  	0.003339
+DESIGN_10YR24HR_ALT	          	33:30:00  	0.003341
+DESIGN_10YR24HR_ALT	          	33:35:00  	0.003315
+DESIGN_10YR24HR_ALT	          	33:40:00  	0.003316
+DESIGN_10YR24HR_ALT	          	33:45:00  	0.003298
+DESIGN_10YR24HR_ALT	          	33:50:00  	0.003286
+DESIGN_10YR24HR_ALT	          	33:55:00  	0.003282
+DESIGN_10YR24HR_ALT	          	34:00:00  	0.003258
+DESIGN_10YR24HR_ALT	          	34:05:00  	0.003262
+DESIGN_10YR24HR_ALT	          	34:10:00  	0.003238
+DESIGN_10YR24HR_ALT	          	34:15:00  	0.003234
+DESIGN_10YR24HR_ALT	          	34:20:00  	0.003222
+DESIGN_10YR24HR_ALT	          	34:25:00  	0.003204
+DESIGN_10YR24HR_ALT	          	34:30:00  	0.003205
+DESIGN_10YR24HR_ALT	          	34:35:00  	0.003179
+DESIGN_10YR24HR_ALT	          	34:40:00  	0.003181
+DESIGN_10YR24HR_ALT	          	34:45:00  	0.003162
+DESIGN_10YR24HR_ALT	          	34:50:00  	0.003151
+DESIGN_10YR24HR_ALT	          	34:55:00  	0.003147
+DESIGN_10YR24HR_ALT	          	35:00:00  	0.003122
+DESIGN_10YR24HR_ALT	          	35:05:00  	0.003126
+DESIGN_10YR24HR_ALT	          	35:10:00  	0.003102
+DESIGN_10YR24HR_ALT	          	35:15:00  	0.003098
+DESIGN_10YR24HR_ALT	          	35:20:00  	0.003086
+DESIGN_10YR24HR_ALT	          	35:25:00  	0.003068
+DESIGN_10YR24HR_ALT	          	35:30:00  	0.003069
+DESIGN_10YR24HR_ALT	          	35:35:00  	0.003043
+DESIGN_10YR24HR_ALT	          	35:40:00  	0.003045
+DESIGN_10YR24HR_ALT	          	35:45:00  	0.003026
+DESIGN_10YR24HR_ALT	          	35:50:00  	0.003015
+DESIGN_10YR24HR_ALT	          	35:55:00  	0.003011
+DESIGN_10YR24HR_ALT	          	36:00:00  	0.002986
+DESIGN_10YR24HR_ALT	          	36:05:00  	0.000000
 ;
-AA_2013                     07:00      0.1       
+5YR_12HR                    12:00      0.000     
+5YR_12HR                    12:15      0.008     
+5YR_12HR                    12:30      0.017     
+5YR_12HR                    12:45      0.031     
+5YR_12HR                    13:00      0.046     
+5YR_12HR                    13:15      0.059     
+5YR_12HR                    13:30      0.073     
+5YR_12HR                    13:45      0.089     
+5YR_12HR                    14:00      0.104     
+5YR_12HR                    14:15      0.124     
+5YR_12HR                    14:30      0.144     
+5YR_12HR                    14:45      0.168     
+5YR_12HR                    15:00      0.191     
+5YR_12HR                    15:15      0.219     
+5YR_12HR                    15:30      0.246     
+5YR_12HR                    15:45      0.277     
+5YR_12HR                    16:00      0.309     
+5YR_12HR                    16:15      0.345     
+5YR_12HR                    16:30      0.382     
+5YR_12HR                    16:45      0.426     
+5YR_12HR                    17:00      0.470     
+5YR_12HR                    17:15      0.521     
+5YR_12HR                    17:30      0.572     
+5YR_12HR                    17:45      0.630     
+5YR_12HR                    18:00      0.688     
+5YR_12HR                    18:15      0.752     
+5YR_12HR                    18:30      0.817     
+5YR_12HR                    18:45      0.886     
+5YR_12HR                    19:00      0.956     
+5YR_12HR                    19:15      1.030     
+5YR_12HR                    19:30      1.104     
+5YR_12HR                    19:45      1.183     
+5YR_12HR                    20:00      1.263     
+5YR_12HR                    20:15      1.347     
+5YR_12HR                    20:30      1.431     
+5YR_12HR                    20:45      1.519     
+5YR_12HR                    21:00      1.607     
+5YR_12HR                    21:15      1.696     
+5YR_12HR                    21:30      1.786     
+5YR_12HR                    21:45      1.874     
+5YR_12HR                    22:00      1.962     
+5YR_12HR                    22:15      2.044     
+5YR_12HR                    22:30      2.125     
+5YR_12HR                    22:45      2.197     
+5YR_12HR                    23:00      2.268     
+5YR_12HR                    23:15      2.329     
+5YR_12HR                    23:30      2.390     
+5YR_12HR                    23:45      2.445     
+5YR_12HR                    24:00      2.500
+;
 
 [REPORT]
 ;;Reporting Options
