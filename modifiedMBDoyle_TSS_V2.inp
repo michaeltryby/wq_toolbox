@@ -1,7 +1,7 @@
 [TITLE]
 ;;Project Title/Notes
 Ellsworth Pond to Mary Beth Doyle Wetland Storm Water Model
-Last Updated 5/20/2020
+Last Updated 6/11/2020
 
 [OPTIONS]
 ;;Option             Value
@@ -20,7 +20,7 @@ START_DATE           07/01/2014
 START_TIME           00:00:00
 REPORT_START_DATE    07/01/2014
 REPORT_START_TIME    00:00:00
-END_DATE             07/10/2014
+END_DATE             07/15/2014
 END_TIME             00:00:00
 SWEEP_START          01/01
 SWEEP_END            12/31
@@ -58,9 +58,9 @@ R9167            CUMULATIVE 0:15     1.0     TIMESERIES 5YR_12HR
 [SUBCATCHMENTS]
 ;;Name           Rain Gage        Outlet           Area     %Imperv  Width    %Slope   CurbLen  SnowPack        
 ;;-------------- ---------------- ---------------- -------- -------- -------- -------- -------- ----------------
-EllsworthSubcatch R9167            93-50408         1300     70       250      1        0                        
-WetlandSubcatch  R9167            93-49759         460      50       100      1        0                        
-BasinSubcatch    R9167            93-50404         460      60       100      1        0                        
+EllsworthSubcatch R9167            93-50408         1300     56       500      0.5      0                        
+WetlandSubcatch  R9167            93-49759         310      51       50      0.75       0                        
+BasinSubcatch    R9167            93-50404         310      38       50      2        0                        
 
 [SUBAREAS]
 ;;Subcatchment   N-Imperv   N-Perv     S-Imperv   S-Perv     PctZero    RouteTo    PctRouted 
@@ -372,14 +372,14 @@ General          TSS              EMC        21.0       0.0        0.0        0.
 ;;Name           Type       X-Value    Y-Value   
 ;;-------------- ---------- ---------- ----------
 93-50408         STORAGE    0.000000   142130.000000
-93-50408                    2.000000   168616.000000
-93-50408                    4.000000   263248.000000
-93-50408                    7.000000   283623.000000
-93-50408                    10.000000  312466.000000
-93-50408                    20.000000  312466.000000
+93-50408                    2.000000   163616.000000
+93-50408                    4.000000   163248.000000
+93-50408                    8.000000   203623.000000
+93-50408                    10.000000  342466.000000
+93-50408                    20.000000  342466.000000
 ;
-DOYLE_1          STORAGE    0.000000   39800.000000
-DOYLE_1                     2.000000   39800.000000
+DOYLE_1          STORAGE    0.000000   50800.000000
+DOYLE_1                     2.000000   50800.000000
 DOYLE_1                     4.000000   91000.000000
 DOYLE_1                     5.000000   93300.000000
 DOYLE_1                     6.000000   99300.000000
