@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-06-11 22:21:36
+# @Last Modified time: 2020-06-12 07:31:05
 
 # Import required modules
 from pyswmm import Simulation, Nodes, Links
@@ -364,8 +364,7 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
     solver3.set_integrator("dopri5")
 
     # Tracking time for control actions every 15 minutes (5 sec time step)
-    _tempcount1 = 180
-    _tempcount2 = 180
+    _tempcount = 180
 
     # Tracking time for DO reaction
     t1 = 0
@@ -528,7 +527,7 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
         sim._model.setNodePollutant("93-49759", 0, solver3.y[0])
 
         # Wetland & Ellsworth Control Actions (every 15 mins - 5 sec timesteps)
-        if _tempcount1 == 180:
+        if _tempcount == 180:
             # If any of DO levels are above the anoxic zone
             if (DO1 or DO2 or DO3) > 1.0:
                 # And if  the  wetland has capacity
@@ -550,7 +549,7 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
                     Ells_valve.target_setting = min(1.0, 70.6/(np.sqrt(2.0*32.2*Ell_d))/25)
                     print("low DO, low NO")
                 #  Else if the Wetlandn NO conc. is high
-                else:
+                elif Wt_p > 5.0:
                     # And if the wetland still has capacity, close both valves
                     if Wt_d <= 9.5:
                         Wtlnd_valve.target_setting = 0.0
@@ -561,8 +560,8 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
                         Wtlnd_valve.target_setting = min(1.0, 70.6/(np.sqrt(2.0*32.2*Wt_d))/12.6)
                         Ells_valve.target_setting = 0.0
                         print("low DO, high NO, no Wt cap")
-            _tempcount1= 0
-        _tempcount1+= 1
+            _tempcount= 0
+        _tempcount+= 1
 
         Wetland_valveC.append(Wtlnd_valve.target_setting)
         Ellsworth_valveC.append(Ells_valve.target_setting)

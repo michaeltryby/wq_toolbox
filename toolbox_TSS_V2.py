@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-06-11 10:21:53
+# @Last Modified time: 2020-06-12 08:12:24
 
 # Import required modules
 from pyswmm import Simulation, Nodes, Links
@@ -251,6 +251,9 @@ with Simulation("./modifiedMBDoyle_TSS_V2.inp") as sim:
     Wtlnd_valve = Links(sim)["95-70293"]
     Wtlnd_bypass = Links(sim)["95-70294"]
 
+    # Tracking time for control actions every 15 minutes (5 sec time step)
+    _tempcount = 180
+
     # Step through the simulation    
     for index,step in enumerate(sim):
 
@@ -299,13 +302,38 @@ with Simulation("./modifiedMBDoyle_TSS_V2.inp") as sim:
         Ch_d = Channel.depth
         Channel_depthC.append(Ch_d)
 
-        # Wetland Control Actions
-        Wtlnd_valve.target_setting = 0.05
+        # Wetland Control Actions (every 15 mins - 5 sec timesteps)
+        if _tempcount == 180:
+            # If wetland has capacity, slowly open both valves
+            if Wt_d <= 9.5:
+                Ells_valve.target_setting = min(0.05, 70.6/(np.sqrt(2.0*32.2*Ell_d))/25)
+                Wtlnd_valve.target_setting = min(0.33, 70.6/(np.sqrt(2.0*32.2*Wt_d))/12.6)
+                print("Ell and Wt cap, slow open both")
+            # If wetland does not have capacity
+            elif Wt_d > 9.5:
+                # But Ellsworth does, close Ellsworth valve and slowly open Wetland valve
+                if Ell_d <= 15:
+                    Ells_valve.target_setting = 0.0
+                    Wtlnd_valve.target_setting = min(0.33, 70.6/(np.sqrt(2.0*32.2*Wt_d))/12.6)
+                    print("Ell cap, Wt no cap, close Ell, slow open Wt")
+                # If neither has capacity, slowly open both valves
+                else:
+                    Ells_valve.target_setting = min(0.05, 70.6/(np.sqrt(2.0*32.2*Ell_d))/25)
+                    Wtlnd_valve.target_setting = min(0.33, 70.6/(np.sqrt(2.0*32.2*Wt_d))/12.6)    
+                    print("Both no cap")
+            _tempcount= 0
+        _tempcount+= 1
+
         Wetland_valveC.append(Wtlnd_valve.target_setting)
+        Ellsworth_valveC.append(Ells_valve.target_setting)
+
+        # Wetland Control Actions
+        #Wtlnd_valve.target_setting = 0.05
+        #Wetland_valveC.append(Wtlnd_valve.target_setting)
 
         # Ellsworth Control Actions
-        Ells_valve.target_setting = 0.05
-        Ellsworth_valveC.append(Ells_valve.target_setting)
+        #Ells_valve.target_setting = 0.05
+        #Ellsworth_valveC.append(Ells_valve.target_setting)
     
     sim._model.swmm_end()
     print(sim.runoff_error)
@@ -418,7 +446,7 @@ ax[4,0].set_ylabel("Outflow (m³/s)")
 ax[5,0].plot(Ellsworth_cumload, 'k--')
 ax[5,0].plot(Ellsworth_cumloadC, 'b')
 ax[5,0].set_ylabel("Cum. Load (kg)")
-ax[6,0].set_xlabel("Time (min)")
+ax[6,0].set_xlabel("Time ")
 ax[6,0].plot(Ellsworth_flooding_m, 'k--')
 ax[6,0].plot(Ellsworth_flooding_mC, 'b')
 ax[6,0].set_ylabel("Flooding (m³/s)")
@@ -436,7 +464,7 @@ ax[5,1].plot(DBasin_cumload, "k--")
 ax[5,1].plot(DBasin_cumloadC, "b")
 ax[6,1].plot(Wtlnd_bypass_m, 'k--')
 ax[6,1].plot(Wtlnd_bypass_mC, 'b')
-ax[6,1].set_xlabel("Time (min)")
+ax[6,1].set_xlabel("Time ")
 ax[0,2].plot(Wetland_inflow_m, "k--")
 ax[0,2].plot(Wetland_inflow_mC, "b")
 ax[0,2].set_title("Wetland")
@@ -452,7 +480,7 @@ ax[5,2].plot(Wetland_cumload, "k--")
 ax[5,2].plot(Wetland_cumloadC, "b")
 ax[6,2].plot(Wetland_flooding_m, 'k--')
 ax[6,2].plot(Wetland_flooding_mC, 'b')
-ax[6,2].set_xlabel("Time (min)")
+ax[6,2].set_xlabel("Time ")
 ax[0,3].plot(Channel_flow_m, "k--")
 ax[0,3].plot(Channel_flow_mC, "b")
 ax[0,3].set_title("Channel")
@@ -464,5 +492,5 @@ ax[4,3].plot(Channel_flow_m, "k--")
 ax[4,3].plot(Channel_flow_mC, "b")
 ax[5,3].plot(Channel_cumload, "k--")
 ax[5,3].plot(Channel_cumloadC, "b")
-ax[6,3].set_xlabel("Time (min)")
+ax[6,3].set_xlabel("Time ")
 plt.show()
