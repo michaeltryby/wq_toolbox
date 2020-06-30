@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-06-12 08:12:24
+# @Last Modified time: 2020-06-27 12:02:24
 
 # Import required modules
 from pyswmm import Simulation, Nodes, Links
@@ -423,7 +423,7 @@ print("Channel Controlled:", Channel_cumloadC[-1])
 # Data for flooding line
 Ell_flood = [6.0960]*len(Ellsworth_inflowC)
 Wt_bypass = [2.8956]*len(Ellsworth_inflowC)
-Wt_flood  = [2.7432]*len(Ellsworth_inflowC)
+Wt_flood  = [3.048]*len(Ellsworth_inflowC)
 
 # Plot Result
 fig, ax = plt.subplots(7, 4, sharex=True)

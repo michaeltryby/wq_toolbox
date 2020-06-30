@@ -2,7 +2,7 @@
 # @Author: Brooke Mason
 # @Date:   2020-01-15 09:57:05
 # @Last Modified by:   Brooke Mason
-# @Last Modified time: 2020-06-12 07:31:05
+# @Last Modified time: 2020-06-27 16:07:59
 
 # Import required modules
 from pyswmm import Simulation, Nodes, Links
@@ -26,37 +26,33 @@ Co_DO = 10.0    # mg/L
 # Lists to store results
 Ellsworth_inflow = []
 Ellsworth_conc = []
-Ellsworth_cuminload = []
 Ellsworth_depth = []
-Ellsworth_flooding = []
+#Ellsworth_flooding = []
 Ellsworth_outflow = []
 Ellsworth_cumload = []
 
 DBasin_inflow = []
 DBasin_conc = []
-DBasin_cuminload = []
 DBasin_depth = []
 DBasin_outflow = []
 DBasin_cumload = []
 
 Wetland_inflow = []
 Wetland_conc = []
-Wetland_cuminload = []
 Wetland_depth = []
-Wetland_flooding= []
+#Wetland_flooding= []
 Wetland_volume = []
 Wetland_outflow = []
 Wetland_cumload = []
 Wetland_DO1 = []
 Wetland_DO2 = []
 Wetland_DO3 = []   
-Wtlnd_bp_inflows = []
+#Wtlnd_bp_inflows = []
 
 Channel_flow = []
 Channel_conc = []
-Channel_cuminload = []
 Channel_depth = []
-Channel_flooding = []
+#Channel_flooding = []
 Channel_cumload = []
 
 # Setup toolbox simulation
@@ -108,8 +104,8 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
         Ellsworth_inflow.append(Ell_if)
         Ell_d = Ellsworth.depth
         Ellsworth_depth.append(Ell_d)
-        Ell_fl = Ellsworth.flooding
-        Ellsworth_flooding.append(Ell_fl)
+        #Ell_fl = Ellsworth.flooding
+        #Ellsworth_flooding.append(Ell_fl)
         Ell_of = Ellsworth.total_outflow
         Ellsworth_outflow.append(Ell_of)
         DB_if = DBasin.total_inflow
@@ -122,14 +118,14 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
         Wetland_inflow.append(Wt_if)
         Wt_d = Wetland.depth
         Wetland_depth.append(Wt_d)
-        Wt_fl = Wetland.flooding
-        Wetland_flooding.append(Wt_fl)
+        #Wt_fl = Wetland.flooding
+        #Wetland_flooding.append(Wt_fl)
         Wt_v = Wetland.volume
         Wetland_volume.append(Wt_v)
         Wt_of = Wetland.total_outflow
         Wetland_outflow.append(DB_of)
-        Wt_bp = Wtlnd_bypass.flow
-        Wtlnd_bp_inflows.append(Wt_bp)
+        #Wt_bp = Wtlnd_bypass.flow
+        #Wtlnd_bp_inflows.append(Wt_bp)
         Ch_f = Channel.flow
         Channel_flow.append(Ch_f)
         Ch_d = Channel.depth
@@ -260,10 +256,10 @@ DBasin_outflow_m = [a*b for a,b in zip(DBasin_outflow,conv_cfs_cms)]
 Wetland_outflow_m = [a*b for a,b in zip(Wetland_outflow,conv_cfs_cms)]
 
 # Convert flooding rate from cfs to m3/s
-conv_cfs_cms = [0.02832]*len(Ellsworth_inflow)
-Ellsworth_flooding_m = [a*b for a,b in zip(Ellsworth_flooding,conv_cfs_cms)]
-Wetland_flooding_m = [a*b for a,b in zip(Wetland_flooding,conv_cfs_cms)]
-Wtlnd_bypass_m = [a*b for a,b in zip(Wtlnd_bp_inflows,conv_cfs_cms)]
+#conv_cfs_cms = [0.02832]*len(Ellsworth_inflow)
+#Ellsworth_flooding_m = [a*b for a,b in zip(Ellsworth_flooding,conv_cfs_cms)]
+#Wetland_flooding_m = [a*b for a,b in zip(Wetland_flooding,conv_cfs_cms)]
+#Wtlnd_bypass_m = [a*b for a,b in zip(Wtlnd_bp_inflows,conv_cfs_cms)]
 
 # Convert depth from ft to m
 conv_ft_m = [0.3048]*len(Ellsworth_inflow)
@@ -271,13 +267,6 @@ Ellsworth_depth_m = [a*b for a,b in zip(Ellsworth_depth,conv_ft_m)]
 DBasin_depth_m = [a*b for a,b in zip(DBasin_depth,conv_ft_m)]
 Wetland_depth_m = [a*b for a,b in zip(Wetland_depth,conv_ft_m)]
 Channel_depth_m = [a*b for a,b in zip(Channel_depth,conv_ft_m)]
-
-# Convert volume from ft3 to m3
-#conv_ft_m = [0.3048]*len(Ellsworth_inflow)
-#Ellsworth_volume_m = [a*b for a,b in zip(Ellsworth_volume,conv_ft_m)]
-#DBasin_volume_m = [a*b for a,b in zip(DBasin_volume,conv_ft_m)]
-#Wetland_volume_m = [a*b for a,b in zip(Wetland_volume,conv_ft_m)]
-#Channel_volume_m = [a*b for a,b in zip(Channel_volume,conv_ft_m)]
 
 # Calculate load each timestep
 conv_mgs_kgs = [0.000001]*len(Ellsworth_inflow)
@@ -293,36 +282,27 @@ DBasin_cumload = np.cumsum(DBasin_load)
 Wetland_cumload = np.cumsum(Wetland_load)
 Channel_cumload = np.cumsum(Channel_load)
 
-# Calculate cumulative flooding
-#Ellsworth_cumvol = np.cumsum(Ellsworth_flooding_m)
-#DBasin_cumvol = np.cumsum(DBasin_flooding_m)
-#Wetland_cumvol = np.cumsum(Wetland_flooding_m)
-#Channel_cumvol = np.cumsum(Channel_flooding_m)
-
 #----------------------------------------------------------------------#
 # Controlled Simulation 
 # Lists to store results
 Ellsworth_inflowC = []
 Ellsworth_concC = []
-Ellsworth_cuminloadC = []
 Ellsworth_depthC = []
-Ellsworth_floodingC = []
+#Ellsworth_floodingC = []
 Ellsworth_valveC = []
 Ellsworth_outflowC = []
 Ellsworth_cumloadC = []
 
 DBasin_inflowC = []
 DBasin_concC = []
-DBasin_cuminloadC = []
 DBasin_depthC = []
 DBasin_outflowC = []
 DBasin_cumloadC = []
 
 Wetland_inflowC = []
 Wetland_concC = []
-Wetland_cuminload = []
 Wetland_depthC = []
-Wetland_floodingC = []
+#Wetland_floodingC = []
 Wetland_volumeC = []
 Wetland_valveC = []
 Wetland_outflowC = []
@@ -330,11 +310,10 @@ Wetland_cumloadC = []
 Wetland_DO1C = []
 Wetland_DO2C = []
 Wetland_DO3C = []
-Wtlnd_bp_inflowsC = []
+#Wtlnd_bp_inflowsC = []
 
 Channel_flowC = []
 Channel_concC = []
-Channel_cuminload = []
 Channel_depthC = []
 Channel_outflowC = []
 Channel_cumloadC = []
@@ -394,8 +373,8 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
         Ellsworth_inflowC.append(Ell_if)
         Ell_d = Ellsworth.depth
         Ellsworth_depthC.append(Ell_d)
-        Ell_fl = Ellsworth.flooding
-        Ellsworth_floodingC.append(Ell_fl)
+        #Ell_fl = Ellsworth.flooding
+        #Ellsworth_floodingC.append(Ell_fl)
         Ell_of = Ellsworth.total_outflow
         Ellsworth_outflowC.append(Ell_of)
         DB_if = DBasin.total_inflow
@@ -407,14 +386,14 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
         Wetland_inflowC.append(Wt_if)
         Wt_d = Wetland.depth
         Wetland_depthC.append(Wt_d)
-        Wt_fl = Wetland.flooding
-        Wetland_floodingC.append(Wt_fl)
+        #Wt_fl = Wetland.flooding
+        #Wetland_floodingC.append(Wt_fl)
         Wt_v = Wetland.volume
         Wetland_volumeC.append(Wt_v)
         Wt_of = Wetland.total_outflow
         Wetland_outflowC.append(DB_of)
-        Wt_bp = Wtlnd_bypass.flow
-        Wtlnd_bp_inflowsC.append(Wt_bp)
+        #Wt_bp = Wtlnd_bypass.flow
+        #Wtlnd_bp_inflowsC.append(Wt_bp)
         Ch_f = Channel.flow
         Channel_flowC.append(Ch_f)
         Ch_d = Channel.depth
@@ -535,31 +514,26 @@ with Simulation("./modifiedMBDoyle_NO.inp") as sim:
                     # Close the wetland valve and proprtionally open Ellsworth valve
                     Wtlnd_valve.target_setting = 0.0
                     Ells_valve.target_setting = min(1.0, 70.6/(np.sqrt(2.0*32.2*Ell_d))/25)
-                    print("high DO, Wt cap")
                 # If not, open the wetland valve and close the Ellsworth valve
                 else:
                     Wtlnd_valve.target_setting = min(1.0, 70.6/(np.sqrt(2.0*32.2*Wt_d))/12.6)
                     Ells_valve.target_setting = 0.0
-                    print("high DO, no Wt cap")
             # If all DO levels are in the anoxic zone
             elif (DO1 and DO2 and DO3) <= 1.0:
                 # And if the Wetland NO concentration is low, open both valves
                 if Wt_p <= 5.0:
                     Wtlnd_valve.target_setting = min(1.0, 70.6/(np.sqrt(2.0*32.2*Wt_d))/12.6)
                     Ells_valve.target_setting = min(1.0, 70.6/(np.sqrt(2.0*32.2*Ell_d))/25)
-                    print("low DO, low NO")
                 #  Else if the Wetlandn NO conc. is high
                 elif Wt_p > 5.0:
                     # And if the wetland still has capacity, close both valves
                     if Wt_d <= 9.5:
                         Wtlnd_valve.target_setting = 0.0
                         Ells_valve.target_setting = 0.0
-                        print("low DO, high NO, Wt cap")
                     # If the wetland doesn't have capacity, open the wetland and close Ellsworth valve
                     else:
                         Wtlnd_valve.target_setting = min(1.0, 70.6/(np.sqrt(2.0*32.2*Wt_d))/12.6)
                         Ells_valve.target_setting = 0.0
-                        print("low DO, high NO, no Wt cap")
             _tempcount= 0
         _tempcount+= 1
 
@@ -585,10 +559,10 @@ DBasin_outflow_mC = [a*b for a,b in zip(DBasin_outflowC,conv_cfs_cms)]
 Wetland_outflow_mC = [a*b for a,b in zip(Wetland_outflowC,conv_cfs_cms)]
 
 # Convert flooding rate from cfs to m3/s
-conv_cfs_cms = [0.02832]*len(Ellsworth_inflowC)
-Ellsworth_flooding_mC = [a*b for a,b in zip(Ellsworth_floodingC,conv_cfs_cms)]
-Wetland_flooding_mC = [a*b for a,b in zip(Wetland_floodingC,conv_cfs_cms)]
-Wtlnd_bypass_mC = [a*b for a,b in zip(Wtlnd_bp_inflowsC,conv_cfs_cms)]
+#conv_cfs_cms = [0.02832]*len(Ellsworth_inflowC)
+#Ellsworth_flooding_mC = [a*b for a,b in zip(Ellsworth_floodingC,conv_cfs_cms)]
+#Wetland_flooding_mC = [a*b for a,b in zip(Wetland_floodingC,conv_cfs_cms)]
+#Wtlnd_bypass_mC = [a*b for a,b in zip(Wtlnd_bp_inflowsC,conv_cfs_cms)]
 
 # Convert depth from ft to m
 conv_ft_m = [0.3048]*len(Ellsworth_inflowC)
@@ -596,13 +570,6 @@ Ellsworth_depth_mC = [a*b for a,b in zip(Ellsworth_depthC,conv_ft_m)]
 DBasin_depth_mC = [a*b for a,b in zip(DBasin_depthC,conv_ft_m)]
 Wetland_depth_mC = [a*b for a,b in zip(Wetland_depthC,conv_ft_m)]
 Channel_depth_mC = [a*b for a,b in zip(Channel_depthC,conv_ft_m)]
-
-# Convert volume from ft3 to m3
-#conv_ft_mC = [0.3048]*len(Ellsworth_inflow)
-#Ellsworth_volume_mC = [a*b for a,b in zip(Ellsworth_volumeC,conv_ft_m)]
-#DBasin_volume_mC = [a*b for a,b in zip(DBasin_volumeC,conv_ft_m)]
-#Wetland_volume_mC = [a*b for a,b in zip(Wetland_volumeC,conv_ft_m)]
-#Channel_volume_mC = [a*b for a,b in zip(Channel_volumeC,conv_ft_m)]
 
 # Calculate outflow load each timestep
 conv_mgs_kgs = [0.000001]*len(Ellsworth_inflowC)
@@ -617,12 +584,6 @@ Ellsworth_cumloadC = np.cumsum(Ellsworth_loadC)
 DBasin_cumloadC = np.cumsum(DBasin_loadC)
 Wetland_cumloadC = np.cumsum(Wetland_loadC)
 Channel_cumloadC = np.cumsum(Channel_loadC)
-
-# Calculate cumulative flooding
-#Ellsworth_cumvolC = np.cumsum(Ellsworth_flooding_mC)
-#DBasin_cumvolC = np.cumsum(DBasin_flooding_mC)
-#Wetland_cumvolC = np.cumsum(Wetland_flooding_mC)
-#Channel_cumvolC = np.cumsum(Channel_flooding_mC)
 
 #----------------------------------------------------------------------#
 
@@ -644,78 +605,243 @@ Wt_bypass = [2.8956]*len(Ellsworth_inflowC)
 Wt_flood  = [2.7432]*len(Ellsworth_inflowC)
 
 # Plot Result
-fig, ax = plt.subplots(8, 4, sharex=True)
+fig, ax = plt.subplots(7, 4)
 ax[0,0].plot(Ellsworth_inflow_m, 'k--')
 ax[0,0].plot(Ellsworth_inflow_mC, 'b')
+ax[0,0].set_xticks([])
+ax[0,0].set_yticks([0,3,6,9])
+ax[0,0].set_yticklabels(["0","3","6","9"])
+ax[0,0].set_ylim(-0.1,9.05)
+ax[0,0].set_xlim(0,190080)
 ax[0,0].set_ylabel("Inflow")
 ax[0,0].set_title("Ellsworth")
+
 ax[1,0].plot(Ellsworth_conc, 'k--')
 ax[1,0].plot(Ellsworth_concC, 'b')
+ax[1,0].set_xticks([])
+ax[1,0].set_yticks([0,20,40])
+ax[1,0].set_yticklabels(["0","20","40"])
+ax[1,0].set_ylim(-0.1,50)
+ax[1,0].set_xlim(0,190080)
 ax[1,0].set_ylabel("NO (mg/L)")
+
 ax[2,0].set_ylabel("DO (mg/L")
+ax[2,0].set_xticks([])
+ax[2,0].set_yticks([0,5,10])
+ax[2,0].set_yticklabels(["0","5","10"])
+ax[2,0].set_ylim(-0.1,10.5)
+ax[2,0].set_xlim(0,190080)
+
 ax[3,0].plot(Ell_flood, 'r')
 ax[3,0].plot(Ellsworth_depth_m, 'k--')
 ax[3,0].plot(Ellsworth_depth_mC, 'b')
+ax[3,0].set_xticks([])
+ax[3,0].set_yticks([0,3,6])
+ax[3,0].set_yticklabels(["0","3","6"])
+ax[3,0].set_ylim(-0.1,6.5)
+ax[3,0].set_xlim(0,190080)
 ax[3,0].set_ylabel("Depth (m)")
+
 ax[4,0].plot(Ellsworth_valveC, 'b')
+ax[4,0].set_xticks([])
 ax[4,0].set_ylabel("Valve Position")
+ax[4,0].set_yticks([0,0.5,1])
+ax[4,0].set_yticklabels(["0","0.5","1.0"])
+ax[4,0].set_ylim(-0.1,1.05)
+ax[4,0].set_xlim(0,190080)
+
 ax[5,0].plot(Ellsworth_outflow_m, 'k--')
 ax[5,0].plot(Ellsworth_outflow_mC, 'b')
+ax[5,0].set_xticks([])
+ax[5,0].set_yticks([0,4,8])
+ax[5,0].set_yticklabels(["0","4","8"])
+ax[5,0].set_ylim(-0.1,8.5)
+ax[5,0].set_xlim(0,190080)
 ax[5,0].set_ylabel("Outflow (m³/s)")
+
 ax[6,0].plot(Ellsworth_cumload, 'k--')
 ax[6,0].plot(Ellsworth_cumloadC, 'b')
+ax[6,0].set_yticks([0,2,4])
+ax[6,0].set_yticklabels(["0","2","4"])
+ax[6,0].set_ylim(-0.1,4)
+ax[6,0].set_xlim(0,190080)
+ax[6,0].set_xticks([34560,69120,103680,138240,172800])
+ax[6,0].set_xticklabels(["2","4","6","8","10"])
 ax[6,0].set_ylabel("Cum. Load (kg)")
-ax[7,0].plot(Ellsworth_flooding_m, 'k--')
-ax[7,0].plot(Ellsworth_flooding_mC, 'b')
-ax[7,0].set_ylabel("Flooding (m³/s)")
-ax[7,0].set_xlabel("Time")
+ax[6,0].set_xlabel("Time (days)")
+
 ax[0,1].plot(DBasin_inflow_m, "k--")
 ax[0,1].plot(DBasin_inflow_mC, "b")
+ax[0,1].set_xticks([])
+ax[0,1].set_yticks([0,3,6,9])
+ax[0,1].set_yticklabels(["0","3","6","9"])
+ax[0,1].set_ylim(-0.1,9.05)
+ax[0,1].set_xlim(0,190080)
 ax[0,1].set_title("Basin")
+
 ax[1,1].plot(DBasin_conc, "k--")
 ax[1,1].plot(DBasin_concC, "b")
+ax[1,1].set_xticks([])
+ax[1,1].set_yticks([0,20,40])
+ax[1,1].set_yticklabels(["0","20","40"])
+ax[1,1].set_ylim(-0.1,50)
+ax[1,1].set_xlim(0,190080)
+
+ax[2,1].set_xticks([])
+ax[2,1].set_yticks([0,5,10])
+ax[2,1].set_yticklabels(["0","5","10"])
+ax[2,1].set_ylim(-0.1,10.5)
+ax[2,1].set_xlim(0,190080)
+
 ax[3,1].plot(Wt_bypass, 'r')
 ax[3,1].plot(DBasin_depth_m, "k--")
 ax[3,1].plot(DBasin_depth_mC, "b")
+ax[3,1].set_xticks([])
+ax[3,1].set_yticks([0,1.5,3])
+ax[3,1].set_yticklabels(["0","1.5","3"])
+ax[3,1].set_ylim(-0.1,3.25)
+ax[3,1].set_xlim(0,190080)
+
+ax[4,1].set_xticks([])
+ax[4,1].set_yticks([0,0.5,1])
+ax[4,1].set_yticklabels(["0","0.5","1.0"])
+ax[4,1].set_ylim(-0.1,1.05)
+ax[4,1].set_xlim(0,190080)
+
 ax[5,1].plot(DBasin_outflow_m, "k--")
 ax[5,1].plot(DBasin_outflow_mC, "b")
+ax[5,1].set_xticks([])
+ax[5,1].set_yticks([0,4,8])
+ax[5,1].set_yticklabels(["0","4","8"])
+ax[5,1].set_ylim(-0.1,8.5)
+ax[5,1].set_xlim(0,190080)
+
 ax[6,1].plot(DBasin_cumload, "k--")
 ax[6,1].plot(DBasin_cumloadC, "b")
-ax[7,1].plot(Wtlnd_bypass_m, 'k--')
-ax[7,1].plot(Wtlnd_bypass_mC, "b")
-ax[7,1].set_xlabel("Time")
+ax[6,1].set_yticks([0,2,4])
+ax[6,1].set_yticklabels(["0","2","4"])
+ax[6,1].set_ylim(-0.1,4)
+ax[6,1].set_xlim(0,190080)
+ax[6,1].set_xticks([34560,69120,103680,138240,172800])
+ax[6,1].set_xticklabels(["2","4","6","8","10"])
+ax[6,1].set_xlabel("Time (days)")
+
 ax[0,2].plot(Wetland_inflow_m, "k--")
 ax[0,2].plot(Wetland_inflow_mC, "b")
+ax[0,2].set_xticks([])
+ax[0,2].set_yticks([0,3,6,9])
+ax[0,2].set_yticklabels(["0","3","6","9"])
+ax[0,2].set_ylim(-0.1,9.05)
+ax[0,2].set_xlim(0,190080)
 ax[0,2].set_title("Wetland")
+
 ax[1,2].plot(Wetland_conc, "k--")
 ax[1,2].plot(Wetland_concC, "b")
+ax[1,2].set_xticks([])
+ax[1,2].set_yticks([0,20,40])
+ax[1,2].set_yticklabels(["0","20","40"])
+ax[1,2].set_ylim(-0.1,50)
+ax[1,2].set_xlim(0,190080)
+
 ax[2,2].plot(Wetland_DO1, "m--")
 ax[2,2].plot(Wetland_DO2, "g--")
 ax[2,2].plot(Wetland_DO3, "c--")
 ax[2,2].plot(Wetland_DO1C, "m")
 ax[2,2].plot(Wetland_DO2C, "g")
 ax[2,2].plot(Wetland_DO3C, "c")
+ax[2,2].set_xticks([])
+ax[2,2].set_yticks([0,5,10])
+ax[2,2].set_yticklabels(["0","5","10"])
+ax[2,2].set_ylim(-0.1,10.5)
+ax[2,2].set_xlim(0,190080)
+
 ax[3,2].plot(Wt_flood, 'r')
 ax[3,2].plot(Wetland_depth_m, "k--")
 ax[3,2].plot(Wetland_depth_mC, "b")
+ax[3,2].set_xticks([])
+ax[3,2].set_yticks([0,1.5,3])
+ax[3,2].set_yticklabels(["0","1.5","3"])
+ax[3,2].set_ylim(-0.1,3.25)
+ax[3,2].set_xlim(0,190080)
+
 ax[4,2].plot(Wetland_valveC, "b")
+ax[4,2].set_xticks([])
+ax[4,2].set_yticks([0,0.5,1])
+ax[4,2].set_yticklabels(["0","0.5","1.0"])
+ax[4,2].set_ylim(-0.1,1.05)
+ax[4,2].set_xlim(0,190080)
+
 ax[5,2].plot(Wetland_outflow_m, "k--")
 ax[5,2].plot(Wetland_outflow_mC, "b")
+ax[5,2].set_xticks([])
+ax[5,2].set_yticks([0,4,8])
+ax[5,2].set_yticklabels(["0","4","8"])
+ax[5,2].set_ylim(-0.1,8.5)
+ax[5,2].set_xlim(0,190080)
+
 ax[6,2].plot(Wetland_cumload, "k--")
 ax[6,2].plot(Wetland_cumloadC, "b")
-ax[7,2].plot(Wetland_flooding_m, 'k--')
-ax[7,2].plot(Wetland_flooding_mC, 'b')
-ax[7,2].set_xlabel("Time")
+ax[6,2].set_yticks([0,2,4])
+ax[6,2].set_yticklabels(["0","2","4"])
+ax[6,2].set_ylim(-0.1,4)
+ax[6,2].set_xlim(0,190080)
+ax[6,2].set_xticks([34560,69120,103680,138240,172800])
+ax[6,2].set_xticklabels(["2","4","6","8","10"])
+ax[6,2].set_xlabel("Time (days)")
+
 ax[0,3].plot(Channel_flow_m, "k--")
 ax[0,3].plot(Channel_flow_mC, "b")
-ax[0,3].set_title("Channel")
+ax[0,3].set_xticks([])
+ax[0,3].set_yticks([0,3,6,9])
+ax[0,3].set_yticklabels(["0","3","6","9"])
+ax[0,3].set_ylim(-0.1,9.05)
+ax[0,3].set_xlim(0,190080)
+ax[0,3].set_title("Channel to Outfall")
+
 ax[1,3].plot(Channel_conc, "k--")
 ax[1,3].plot(Channel_concC, "b")
+ax[1,3].set_xticks([])
+ax[1,3].set_yticks([0,20,40])
+ax[1,3].set_yticklabels(["0","20","40"])
+ax[1,3].set_ylim(-0.1,50)
+ax[1,3].set_xlim(0,190080)
+
+ax[2,3].set_xticks([])
+ax[2,3].set_yticks([0,5,10])
+ax[2,3].set_yticklabels(["0","5","10"])
+ax[2,3].set_ylim(-0.1,10.5)
+ax[2,3].set_xlim(0,190080)
+
 ax[3,3].plot(Channel_depth_m, "k--")
 ax[3,3].plot(Channel_depth_mC, "b")
+ax[3,3].set_xticks([])
+ax[3,3].set_yticks([0,1.5,3])
+ax[3,3].set_yticklabels(["0","1.5","3"])
+ax[3,3].set_ylim(-0.1,3.25)
+ax[3,3].set_xlim(0,190080)
+
+ax[4,3].set_xticks([])
+ax[4,3].set_yticks([0,0.5,1])
+ax[4,3].set_yticklabels(["0","0.5","1.0"])
+ax[4,3].set_ylim(-0.1,1.05)
+ax[4,3].set_xlim(0,190080)
+
 ax[5,3].plot(Channel_flow_m, "k--")
 ax[5,3].plot(Channel_flow_mC, "b")
+ax[5,3].set_xticks([])
+ax[5,3].set_yticks([0,4,8])
+ax[5,3].set_yticklabels(["0","4","8"])
+ax[5,3].set_ylim(-0.1,8.5)
+ax[5,3].set_xlim(0,190080)
+
 ax[6,3].plot(Channel_cumload, "k--")
 ax[6,3].plot(Channel_cumloadC, "b")
-ax[7,3].set_xlabel("Time")
+ax[6,3].set_yticks([0,2,4])
+ax[6,3].set_yticklabels(["0","2","4"])
+ax[6,3].set_ylim(-0.1,4)
+ax[6,3].set_xlim(0,190080)
+ax[6,3].set_xticks([34560,69120,103680,138240,172800])
+ax[6,3].set_xticklabels(["2","4","6","8","10"])
+ax[6,3].set_xlabel("Time (days)")
+
 plt.show()
